@@ -34,15 +34,15 @@ cat ${this_filename}
 printf "\n_____________________________________________"
 printf "\nThat concludes the submit script for the job.\n"
 
-printf "Currently loaded modules"
+printf "\nCurrently loaded modules\n"
 module list
 
-printf "Loading modules for job"
+printf "\nLoading modules for job\n"
 module load \
 StdEnv/2023 \
 perl/5.36.1
 
-printf "Currently loaded modules"
+printf "\nCurrently loaded modules\n"
 module list
 
 # Create variables with paths and names of input files
@@ -62,13 +62,16 @@ demultiplexerpath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/tools
 
 # Copy input files to temp node local directory as input and make working directory
 
+printf "\nCopying barcode file to node local storage\n"
 cp ${barcodespath}/${barcodesname} ${SLURM_TMPDIR} 
 
+printf "\nCopying fastq 1 to node local storage\n"
 cp ${fq1path}/${fq1name} ${SLURM_TMPDIR}
 
+printf "\nCopying fastq 2 to node local storage\n"
 cp ${fq2path}/${fq2name} ${SLURM_TMPDIR}
 
-printf "The files in SLURM_TMPDIR are:"
+printf "\nThe files in SLURM_TMPDIR are:\n"
 echo $(ls ${SLURM_TMPDIR})
 
 # Make node local output directory to copy back later
@@ -79,7 +82,7 @@ mkdir ${SLURM_TMPDIR}/${jobtime}
 
 cd ${SLURM_TMPDIR}
 
-printf "Attempting to run demultiplexer"
+printf "\nAttempting to run demultiplexer\n"
 
 perl ${demultiplexerpath} \
 ${barcodespath}/${barcodesname} \
@@ -87,13 +90,16 @@ ${fq1path}/${fq1name} \
 ${fq2path}/${fq2name} \
 ${jobtime}/${outputname}
 
-printf "finished running demultiplexer"
+printf "\nfinished running demultiplexer\n"
 
-printf "The files in SLURM_TMPDIR are now"
+printf "\nThe files in SLURM_TMPDIR are now\n"
 echo $(ls ${SLURM_TMPDIR})
 
 # Move output back to new output directory in projects directory
 
+printf "\nCopying output files back to projects directory\n"
 out_dir_path='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/clean_data/'
 cp -r ${SLURM_TMPDIR}/${jobtime} ${out_dir_path}
+
+printf "\nScript complete\n"
 
