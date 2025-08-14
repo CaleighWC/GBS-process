@@ -4,7 +4,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=32G
-#SBATCH --job-name="02_trim"
+#SBATCH --job-name="02_trim.sub.sh"
 #SBATCH --account=def-dirwin
 #SBATCH --output=job_%j.out
 #SBATCH --mail-user=cwc@zoology.ubc.ca
@@ -34,66 +34,87 @@ cat ${this_filename}
 printf "\n_____________________________________________"
 printf "\nThat concludes the submit script for the job.\n"
 
-printf "Currently loaded modules"
+printf "\nCurrently loaded modules\n"
 module list
 
-printf "Loading modules for job"
+printf "\nLoading modules for job\n"
 module load \
 StdEnv/2023 \
-perl/5.36.1
+trimmomatic/0.39
 
-printf "Currently loaded modules"
+printf "\nCurrently loaded modules\n"
 module list
 
-# Create variables with paths and names of input files
+# Create variables with paths and names of input and output files
 
 barcodespath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/extras'
 barcodesname='barcodes_CaleighWC_Jun_9_2025_data.txt'
 
-fq1path='/home/cwcharle/projects/def-dirwin/cwcharle/GBS_pool_Jun_9_2025_data/'
-fq1name='GBS_Pool_Jun_9_2025_S7_L002_R1_001.fastq'
+cleandatapath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/clean_data'
+cleandataname=''
 
-fq2path='/home/cwcharle/projects/def-dirwin/cwcharle/GBS_pool_Jun_9_2025_data/'
-fq2name='GBS_Pool_Jun_9_2025_S7_L002_R2_001.fastq'
+dataprefix='CWC_Jun_9_2025'
 
-outputname='/GBS_Jun_9_2025_clean'
+outlistpath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/extras'
+outlistname='prefix.list.${dataprefix}.bwa'
 
-demultiplexerpath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/tools/GBS_demultiplexer_30base.pl'
+out_dir_path='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/clean_data_trim/'
+
+# Make list of individuals from the barcode file
+
+awk '{print "${dataprefix}"$1}' ${barcodespath}/${barcodesname} > ${outlistpath}/${outlistname}
 
 # Copy input files to temp node local directory as input and make working directory
 
-cp ${barcodespath}/${barcodesname} ${SLURM_TMPDIR} 
+printf "\nCopying prefix list file to node local storage\n"
+cp ${outlistpath}/${outlistname} ${SLURM_TMPDIR} 
 
+printf "\nCopying cleaned data to node local storage\n"
 cp ${fq1path}/${fq1name} ${SLURM_TMPDIR}
 
-cp ${fq2path}/${fq2name} ${SLURM_TMPDIR}
-
-printf "The files in SLURM_TMPDIR are:"
+printf "\nThe files in SLURM_TMPDIR are:\n"
 echo $(ls ${SLURM_TMPDIR})
 
 # Make node local output directory to copy back later
 
 mkdir ${SLURM_TMPDIR}/${jobtime}
 
-# Run the demultiplexer tool and write its output to the node local output
+# Run the trimmomatic tool and write its output to the node local output file
 
 cd ${SLURM_TMPDIR}
 
-printf "Attempting to run demultiplexer"
+printf "\nAttempting to run trimmomatic\n"
 
-perl ${demultiplexerpath} \
-${barcodespath}/${barcodesname} \
-${fq1path}/${fq1name} \
-${fq2path}/${fq2name} \
-${jobtime}/${outputname}
+while read prefix
 
-printf "finished running demultiplexer"
+do
 
-printf "The files in SLURM_TMPDIR are now"
+java -jar $EBROOTTRIMMOMATIC/trimmomatic-0.39.jar \
+PE \
+-phred33 \
+-threads 1 \
+${cleandatapath}/"$prefix"_R1.fastq \
+${cleandatapath}/"$prefix"_R2.fastq \
+${jobtime}/"$prefix"_R1.fastq \
+${jobtime}/"$prefix"_R1_unpaired.fastq \
+${jobtime}/"$prefix"_R2.fastq \
+${jobtime}/"$prefix"_R2_unpaired.fastq \
+TRAILING:3 \
+SLIDINGWINDOW:4:10 \
+MINLEN:30
+
+done < ${outlistpath}/${outlistname}
+
+printf "\nfinished running trimmomatic\n"
+
+printf "\nThe files in SLURM_TMPDIR are now\n"
 echo $(ls ${SLURM_TMPDIR})
 
 # Move output back to new output directory in projects directory
 
-out_dir_path='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/clean_data/'
+printf "\nCopying output files back to projects directory\n"
+
 cp -r ${SLURM_TMPDIR}/${jobtime} ${out_dir_path}
+
+printf "\nScript complete\n"
 
