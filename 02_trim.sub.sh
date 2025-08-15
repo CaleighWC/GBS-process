@@ -1,9 +1,9 @@
 #!/bin/bash
 
-#SBATCH --time=5:00:00
+#SBATCH --time=1-00:00:00
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=1
-#SBATCH --mem=32G
+#SBATCH --cpus-per-task=8
+#SBATCH --mem=64G
 #SBATCH --job-name="02_trim.sub.sh"
 #SBATCH --account=def-dirwin
 #SBATCH --output=job_%j.out
@@ -56,13 +56,13 @@ cleandataname='/2025-Aug-14_12-46-15'
 dataname='GBS_Jun_9_2025_'
 
 outlistpath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/extras'
-outlistname='prefix.list.${dataprefix}.bwa'
+outlistname='prefix.list.${dataname}.bwa'
 
 out_dir_path='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/clean_data_trim/'
 
 # Make list of individuals from the barcode file
 
-awk '{print "${dataname}"$1}' ${barcodespath}/${barcodesname} > ${outlistpath}/${outlistname}
+awk -v dataname="$dataname" '{print dataname $1}' ${barcodespath}/${barcodesname} > ${outlistpath}/${outlistname}
 
 # Copy input files to temp node local directory as input and make working directory
 
