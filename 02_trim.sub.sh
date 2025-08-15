@@ -51,9 +51,9 @@ barcodespath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/extras'
 barcodesname='barcodes_CaleighWC_Jun_9_2025_data.txt'
 
 cleandatapath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/clean_data'
-cleandataname=''
+cleandataname='/2025-Aug-14_12-46-15'
 
-dataprefix='CWC_Jun_9_2025'
+dataname='GBS_Jun_9_2025_'
 
 outlistpath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/extras'
 outlistname='prefix.list.${dataprefix}.bwa'
@@ -62,7 +62,7 @@ out_dir_path='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/clean_data
 
 # Make list of individuals from the barcode file
 
-awk '{print "${dataprefix}"$1}' ${barcodespath}/${barcodesname} > ${outlistpath}/${outlistname}
+awk '{print "${dataname}"$1}' ${barcodespath}/${barcodesname} > ${outlistpath}/${outlistname}
 
 # Copy input files to temp node local directory as input and make working directory
 
@@ -70,7 +70,7 @@ printf "\nCopying prefix list file to node local storage\n"
 cp ${outlistpath}/${outlistname} ${SLURM_TMPDIR} 
 
 printf "\nCopying cleaned data to node local storage\n"
-cp ${fq1path}/${fq1name} ${SLURM_TMPDIR}
+cp -r ${cleandatapath}/${cleandataname} ${SLURM_TMPDIR}
 
 printf "\nThe files in SLURM_TMPDIR are:\n"
 echo $(ls ${SLURM_TMPDIR})
@@ -93,8 +93,8 @@ java -jar $EBROOTTRIMMOMATIC/trimmomatic-0.39.jar \
 PE \
 -phred33 \
 -threads 1 \
-${cleandatapath}/"$prefix"_R1.fastq \
-${cleandatapath}/"$prefix"_R2.fastq \
+${cleandataname}/"$prefix"_R1.fastq \
+${cleandataname}/"$prefix"_R2.fastq \
 ${jobtime}/"$prefix"_R1.fastq \
 ${jobtime}/"$prefix"_R1_unpaired.fastq \
 ${jobtime}/"$prefix"_R2.fastq \
@@ -103,7 +103,7 @@ TRAILING:3 \
 SLIDINGWINDOW:4:10 \
 MINLEN:30
 
-done < ${outlistpath}/${outlistname}
+done < ${SLURM_TMPDIR}/${outlistname}
 
 printf "\nfinished running trimmomatic\n"
 

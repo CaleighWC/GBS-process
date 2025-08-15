@@ -1,9 +1,9 @@
 #!/bin/bash
 
-#SBATCH --time=5:00:00
+#SBATCH --time=1-00:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=32G
+#SBATCH --mem=48G
 #SBATCH --job-name="01_demultiplex.sub.sh"
 #SBATCH --account=def-dirwin
 #SBATCH --output=job_%j.out
