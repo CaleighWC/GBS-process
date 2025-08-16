@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --time=5:00:00
+#SBATCH --time=1:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=64G
@@ -73,7 +73,7 @@ lane="GBS_Jun_9_2025"
 runbarcode="GBS_Jun_9_2025"
 log="log"
 
-# Copy input files to temp node local directory as input and make working directory
+# Copy input files to temp node local directory as input
 
 printf "\nCopying prefix list file to node local storage\n"
 cp ${outlistpath}/${outlistname} ${SLURM_TMPDIR} 
@@ -87,6 +87,8 @@ echo $(ls ${SLURM_TMPDIR})
 # Make node local output directory to copy back later
 
 mkdir ${SLURM_TMPDIR}/${jobtime}
+mkdir ${SLURM_TMPDIR}/${jobtime}/sam
+mkdir ${SLURM_TMPDIR}/${jobtime}/bam
 
 # Run the tools and write their output to the node local output file
 
