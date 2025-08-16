@@ -2,8 +2,8 @@
 
 #SBATCH --time=5:00:00
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=1
-#SBATCH --mem=32G
+#SBATCH --cpus-per-task=16
+#SBATCH --mem=64G
 #SBATCH --job-name="03_align_combine.sub.sh"
 #SBATCH --account=def-dirwin
 #SBATCH --output=job_%j.out
@@ -53,29 +53,33 @@ barcodespath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/extras'
 barcodesname='barcodes_CaleighWC_Jun_9_2025_data.txt'
 
 cleandatatrimpath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/clean_data_trim'
-cleandatatrimname=''
+cleandatatrimname='2025-Aug-15_14-04-40'
 
-genomepath=''
-genomename=''
+genomepath='/home/cwcharle/projects/def-dirwin/cwcharle/gw2022_data/'
+genomename='GW2022ref.fa'
 
-dataprefix='CWC_Jun_9_2025'
+dataname='GBS_Jun_9_2025_clean_'
 
 outlistpath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/extras'
-outlistname='prefix.list.${dataprefix}.bwa'
+outlistname="prefix.list.${dataname}.bwa"
 
-out_dir_path='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/'
+out_dir_path='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/sam_bam/'
 
-# Make list of individuals from the barcode file
+# Create extra variables for scripts
 
-awk '{print "${dataprefix}"$1}' ${barcodespath}/${barcodesname} > ${outlistpath}/${outlistname}
+sam="${SLURM_TMPDIR}/${jobtime}/sam"
+bam="${SLURM_TMPDIR}/${jobtime}/bam"
+lane="GBS_Jun_9_2025"
+runbarcode="GBS_Jun_9_2025"
+log="log"
 
 # Copy input files to temp node local directory as input and make working directory
 
 printf "\nCopying prefix list file to node local storage\n"
 cp ${outlistpath}/${outlistname} ${SLURM_TMPDIR} 
 
-printf "\nCopying cleaned data to node local storage\n"
-cp ${fq1path}/${fq1name} ${SLURM_TMPDIR}
+printf "\nCopying cleaned trimmed data to node local storage\n"
+cp ${cleandatatrimpath}/${cleandatatrimname} ${SLURM_TMPDIR}
 
 printf "\nThe files in SLURM_TMPDIR are:\n"
 echo $(ls ${SLURM_TMPDIR})
@@ -100,6 +104,7 @@ printf "\nAttempting to run bwa on '$prefix'\n"
 
 bwa mem \
 -M \
+-t 16 \
 ${genomepath}/${genomename} \
 ${cleandatatrimpath}/"$prefix"_R1.fastq \
 ${cleandatatrimpath}/"$prefix"_R2.fastq \
@@ -107,12 +112,14 @@ ${cleandatatrimpath}/"$prefix"_R2.fastq \
 
 bwa mem \
 -M \
+-t 16 \
 ${genomepath}/${genomename} \
 ${cleandatatrimpath}/"$prefix"_R1_unpaired.fastq \
 >$sam/"$prefix".R1.unpaired.sam
 
 bwa mem \
 -M \
+-t 16 \
 ${genomepath}/${genomename} \
 ${cleandatatrimpath}/"$prefix"_R2_unpaired.fastq \
 >$sam/"$prefix".R2.unpaired.sam
