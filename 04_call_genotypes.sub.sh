@@ -108,14 +108,11 @@ do
 
 printf "\nAttempting to call genotypes for '$prefix'\n"
 
-gatk \
--T HaplotypeCaller \
+gatk HaplotypeCaller \
 -R ${genomename} \
 -I ${bamname}/"$prefix".combo.bam \
 -ERC GVCF \
--o ${jobtime}/"$prefix".gvcf.vcf \
--variant_index_type LINEAR \
--variant_index_parameter 128000
+-O ${jobtime}/"$prefix".gvcf.vcf
 
 printf"\Calling genotypes for '$prefix'\n complete"
 
