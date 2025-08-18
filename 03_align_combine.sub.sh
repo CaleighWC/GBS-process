@@ -108,22 +108,22 @@ bwa mem \
 -M \
 -t 16 \
 ${genomepath}/${genomename} \
-${cleandatatrimpath}/"$prefix"_R1.fastq \
-${cleandatatrimpath}/"$prefix"_R2.fastq \
+${cleandatatrimname}/"$prefix"_R1.fastq \
+${cleandatatrimname}/"$prefix"_R2.fastq \
 >$sam/"$prefix".sam
 
 bwa mem \
 -M \
 -t 16 \
 ${genomepath}/${genomename} \
-${cleandatatrimpath}/"$prefix"_R1_unpaired.fastq \
+${cleandatatrimname}/"$prefix"_R1_unpaired.fastq \
 >$sam/"$prefix".R1.unpaired.sam
 
 bwa mem \
 -M \
 -t 16 \
 ${genomepath}/${genomename} \
-${cleandatatrimpath}/"$prefix"_R2_unpaired.fastq \
+${cleandatatrimname}/"$prefix"_R2_unpaired.fastq \
 >$sam/"$prefix".R2.unpaired.sam
 
 printf "\nbwa on '$prefix' complete\n"
