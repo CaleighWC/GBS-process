@@ -79,7 +79,7 @@ printf "\nCopying prefix list file to node local storage\n"
 cp ${outlistpath}/${outlistname} ${SLURM_TMPDIR} 
 
 printf "\nCopying cleaned trimmed data to node local storage\n"
-cp ${cleandatatrimpath}/${cleandatatrimname} ${SLURM_TMPDIR}
+cp -r ${cleandatatrimpath}/${cleandatatrimname} ${SLURM_TMPDIR}
 
 printf "\nCopying reference genome to node local storage\n"
 cp ${genomepath}/${genomename} ${SLURM_TMPDIR}
@@ -97,8 +97,10 @@ mkdir ${SLURM_TMPDIR}/${jobtime}/bam
 
 cd ${SLURM_TMPDIR}
 
-printf"\nIndexing the fasta file\n"
+printf "\nIndexing the fasta file\n"
 bwa index ${genomename}
+
+printf "\nThe files in SLURM_TMPDIR are:\n"
 
 # Run the tools and write their output to the node local output file
 
