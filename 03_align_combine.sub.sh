@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --time=1:00:00
+#SBATCH --time=10:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=64G
@@ -81,6 +81,9 @@ cp ${outlistpath}/${outlistname} ${SLURM_TMPDIR}
 printf "\nCopying cleaned trimmed data to node local storage\n"
 cp ${cleandatatrimpath}/${cleandatatrimname} ${SLURM_TMPDIR}
 
+printf "\nCopying reference genome to node local storage\n"
+cp ${genomepath}/${genomename} ${SLURM_TMPDIR}
+
 printf "\nThe files in SLURM_TMPDIR are:\n"
 echo $(ls ${SLURM_TMPDIR})
 
@@ -90,9 +93,14 @@ mkdir ${SLURM_TMPDIR}/${jobtime}
 mkdir ${SLURM_TMPDIR}/${jobtime}/sam
 mkdir ${SLURM_TMPDIR}/${jobtime}/bam
 
-# Run the tools and write their output to the node local output file
+# Index the fasta file
 
 cd ${SLURM_TMPDIR}
+
+printf"\nIndexing the fasta file\n"
+bwa index ${genomename}
+
+# Run the tools and write their output to the node local output file
 
 printf "\nBeginning loop to run tools\n"
 
@@ -107,7 +115,7 @@ printf "\nAttempting to run bwa on '$prefix'\n"
 bwa mem \
 -M \
 -t 16 \
-${genomepath}/${genomename} \
+${genomename} \
 ${cleandatatrimname}/"$prefix"_R1.fastq \
 ${cleandatatrimname}/"$prefix"_R2.fastq \
 >$sam/"$prefix".sam
@@ -115,14 +123,14 @@ ${cleandatatrimname}/"$prefix"_R2.fastq \
 bwa mem \
 -M \
 -t 16 \
-${genomepath}/${genomename} \
+${genomename} \
 ${cleandatatrimname}/"$prefix"_R1_unpaired.fastq \
 >$sam/"$prefix".R1.unpaired.sam
 
 bwa mem \
 -M \
 -t 16 \
-${genomepath}/${genomename} \
+${genomename} \
 ${cleandatatrimname}/"$prefix"_R2_unpaired.fastq \
 >$sam/"$prefix".R2.unpaired.sam
 
