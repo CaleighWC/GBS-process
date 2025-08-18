@@ -63,7 +63,7 @@ outlistpath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/extras/'
 outlistname="prefix.list.${dataname}.bwa"
 
 outindexpath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/extras/'
-outindexname='GW2022ref.dict'
+outindexname='GW2022ref.fa.fai'
 
 out_dir_path='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/gvcf/'
 
