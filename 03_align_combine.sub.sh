@@ -2,7 +2,7 @@
 
 #SBATCH --time=10:00:00
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=16
+#SBATCH --cpus-per-task=32
 #SBATCH --mem=64G
 #SBATCH --job-name="03_align_combine.sub.sh"
 #SBATCH --account=def-dirwin
@@ -116,7 +116,7 @@ printf "\nAttempting to run bwa on '$prefix'\n"
 
 bwa mem \
 -M \
--t 16 \
+-t 32 \
 ${genomename} \
 ${cleandatatrimname}/"$prefix"_R1.fastq \
 ${cleandatatrimname}/"$prefix"_R2.fastq \
@@ -124,14 +124,14 @@ ${cleandatatrimname}/"$prefix"_R2.fastq \
 
 bwa mem \
 -M \
--t 16 \
+-t 32 \
 ${genomename} \
 ${cleandatatrimname}/"$prefix"_R1_unpaired.fastq \
 >$sam/"$prefix".R1.unpaired.sam
 
 bwa mem \
 -M \
--t 16 \
+-t 32 \
 ${genomename} \
 ${cleandatatrimname}/"$prefix"_R2_unpaired.fastq \
 >$sam/"$prefix".R2.unpaired.sam
