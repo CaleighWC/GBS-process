@@ -1,8 +1,8 @@
 #!/bin/bash
 
-#SBATCH --time=5:00:00
+#SBATCH --time=1-00:00:00
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=1
+#SBATCH --cpus-per-task=16
 #SBATCH --mem=32G
 #SBATCH --job-name="03_align_combine.sub.sh"
 #SBATCH --account=def-dirwin
@@ -46,32 +46,40 @@ gatk/4.6.1.0
 printf "\nCurrently loaded modules\n"
 module list
 
+# Set important variables for job
+
+max_procs=16
+proc_count=0
+
 # Create variables with paths and names of input and output files
 
 barcodespath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/extras'
 barcodesname='barcodes_CaleighWC_Jun_9_2025_data.txt'
 
-bampath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/sam_bam/2025-Aug-16_12-15-01/'
+bampath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/sam_bam/2025-Aug-20_07-59-56'
 bamname='bam'
 
 genomepath='/home/cwcharle/projects/def-dirwin/cwcharle/gw2022_data/'
 genomename='GW2022ref.fa'
+
+genomeindexpath="${genomepath}"
+genomeindexname='GW2022ref.fa.fai'
 
 dataname='GBS_Jun_9_2025_clean_'
 
 outlistpath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/extras/'
 outlistname="prefix.list.${dataname}.bwa"
 
-outindexpath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/extras/'
-outindexname='GW2022ref.fa.fai'
+outdictpath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/extras/'
+outdictname='GW2022ref.dict'
 
 out_dir_path='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/gvcf/'
 
-# Make index of reference
+# Make dict of reference
 
 java -jar $EBROOTPICARD/picard.jar CreateSequenceDictionary \
 REFERENCE=${genomepath}/${genomename} \
-OUTPUT=${outindexpath}/${outindexname}
+OUTPUT=${outdictpath}/${outdictname}
 
 # Copy input files to temp node local directory as input
 
@@ -84,8 +92,11 @@ cp -r ${bampath}/${bamname} ${SLURM_TMPDIR}
 printf "\nCopying reference genome to node local storage\n"
 cp ${genomepath}/${genomename} ${SLURM_TMPDIR}
 
-printf "\nCopying index to node local storage\n"
-cp ${outindexpath}/${outindexname} ${SLURM_TMPDIR}
+printf "\nCopying reference genome index to node local storage\n"
+cp ${genomeindexpath}/${genomeindexname} ${SLURM_TMPDIR}
+
+printf "\nCopying dict to node local storage\n"
+cp ${outdictpath}/${outdictname} ${SLURM_TMPDIR}
 
 printf "\nThe files in SLURM_TMPDIR are:\n"
 echo $(ls ${SLURM_TMPDIR})
@@ -112,13 +123,24 @@ gatk HaplotypeCaller \
 -R ${genomename} \
 -I ${bamname}/"$prefix".combo.bam \
 -ERC GVCF \
--O ${jobtime}/"$prefix".gvcf.vcf
+-O ${jobtime}/"$prefix".gvcf.vcf &
 
-printf"\Calling genotypes for '$prefix'\n complete"
+proc_count=$((proc_count+1))
+
+# Check whether we've reached the maximum process limit and wait
+if [[ $proc_count -ge $max_procs ]]; then
+	wait
+	proc_count=0
+fi
+
+printf "\nCalling genotypes for '$prefix' complete\n"
 
 # Complete loop
 
 done < ${outlistpath}/${outlistname}
+
+# Make sure all processes finish
+wait
 
 printf "\nfinished running tools\n"
 
