@@ -1,8 +1,8 @@
 #!/bin/bash
 
-#SBATCH --time=1-10:00:00
+#SBATCH --time=00:05:00
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=32
+#SBATCH --cpus-per-task=1
 #SBATCH --mem=64G
 #SBATCH --job-name="05_combine_gcfs.sub.sh"
 #SBATCH --account=def-dirwin
@@ -16,7 +16,7 @@ jobtime=$(date "+%Y-%b-%d_%H-%M-%S")
 
 # Set filename of this file so contents can be printed in job output
 
-this_filename='05_combine_gcfs.sub.sh'
+this_filename='05_combine_gvcfs.sub.sh'
 
 # Move output file to have jobtime in it
 
@@ -61,8 +61,6 @@ genomedictname='GW2022ref.dict'
 
 dataname='GBS_Jun_9_2025_clean_'
 
-outlistname="${dataname}.list"
-
 out_dir_path='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/combined_vcfs/'
 
 # Copy input files to temp node local directory
@@ -95,14 +93,14 @@ cd ${SLURM_TMPDIR}
 
 # Make list of individuals for which gvcfs exist
 
-printf "\nCreating list of all individuals for which gvcf files exist"
+printf "\nCreating a variable with the list of all individuals for which gvcf files exist"
 
-ls -1 "${gvcfsname}"/*.vcf | grep -v '^$' > ${outlistname}
+ls -1 "${gvcfsname}"/*vcf > gvcflist.list
 
 printf "\nBelow is the list of all individuals for which gvcf files exist\n"
 printf "\n----------------------------\n"
-cat ${outlistname}
-printf "----------------------------\n"
+cat gvcflist.list
+printf "\n----------------------------\n"
 printf "\nThat concludes the list of all individuals for which gvcf files exist\n"
 
 # Run the tools and write their output to the node local output file
@@ -111,11 +109,23 @@ printf "\nAttempting to begin running gatk to create combined vcf file\n"
 
 gatk \
 --java-options '-DGATK_STACKTRACE_ON_USER_EXCEPTION=true' \
-GenotypeGVCFs \
+CombineGVCFs \
 -R ${genomename} \
 --verbosity INFO \
--V ${outlistname} \
--O combined_vcfs/${dataname}.genotypes.SNPs_only.whole_genome.vcf
+-V gvcflist.list \
+-O ${jobtime}/combined_vcfs/${dataname}.whole_genome.vcf
+
+printf "\nCopying output file from the first step back to projects directory\n"
+cp ${SLURM_TMPDIR}/${jobtime}/combined_vcfs/${dataname}.whole_genome.vcf ${out_dir_path}
+
+printf "\nAttempting to begin running gatk to genotype combined vcf\n"
+gatk \
+--java-options '-DGATK_STACKTRACE_ON_USER_EXCEPTION=true' \
+CombineGVCFs \
+-R ${genomename} \
+--verbosity INFO \
+-V ${jobtime}/combined_vcfs/${dataname}.whole_genome.vcf \
+-O ${jobtime}/combined_vcfs/${dataname}.genotypes.SNPs_only.whole_genome.vcf
 
 printf "\nfinished running gatk\n"
 
@@ -124,10 +134,9 @@ echo $(ls ${SLURM_TMPDIR})
 
 # Move output back to new output directory in projects directory
 
-printf "\nCopying output files back to projects directory\n"
+printf "\nCopying final output file back to projects directory\n"
 
-cp -r ${SLURM_TMPDIR}/${jobtime}/combined_vcfs ${out_dir_path}
-cp -r ${SLURM_TMPDIR}/${jobtime}/combined_vcfs_logs ${out_dir_path}
+cp -r ${SLURM_TMPDIR}/${jobtime}/combined_vcfs/${dataname}.genotypes.SNPs_only.whole_genome.vcf ${out_dir_path}
 
 printf "\nScript complete\n"
 
