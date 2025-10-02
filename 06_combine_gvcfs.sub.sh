@@ -1,10 +1,10 @@
 #!/bin/bash
 
-#SBATCH --time=00:05:00
+#SBATCH --time=7-00:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=64G
-#SBATCH --job-name="05_combine_gcfs.sub.sh"
+#SBATCH --job-name="06_combine_gcfs.sub.sh"
 #SBATCH --account=def-dirwin
 #SBATCH --output=job_%j.out
 #SBATCH --mail-user=cwc@zoology.ubc.ca
@@ -16,7 +16,7 @@ jobtime=$(date "+%Y-%b-%d_%H-%M-%S")
 
 # Set filename of this file so contents can be printed in job output
 
-this_filename='05_combine_gvcfs.sub.sh'
+this_filename='06_combine_gvcfs.sub.sh'
 
 # Move output file to have jobtime in it
 
@@ -121,7 +121,7 @@ cp ${SLURM_TMPDIR}/${jobtime}/combined_vcfs/${dataname}.whole_genome.vcf ${out_d
 printf "\nAttempting to begin running gatk to genotype combined vcf\n"
 gatk \
 --java-options '-DGATK_STACKTRACE_ON_USER_EXCEPTION=true' \
-CombineGVCFs \
+GenotypeGVCFs \
 -R ${genomename} \
 --verbosity INFO \
 -V ${jobtime}/combined_vcfs/${dataname}.whole_genome.vcf \
