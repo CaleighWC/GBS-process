@@ -153,14 +153,22 @@ function intervals_batched_from_dict(dict_file, outdir)
     # Make sure output directory exists  
     mkpath(outdir) 
     
-    # Make sure files are empty
+    	# Make sure files are empty and write to manifest of interval lists
+	
+	manifestpath = joinpath(outdir, "lists_manifest.txt")
+	manifestfile = open(manifestpath, "a")
+
         for i in 1:maximum(bin_addresses)
             
-            txtfilepath = joinpath(outdir, "intervals_$(bin_addresses[i]).list")
+	    txtfilename = "intervals_$(bin_addresses[i]).list"
+            txtfilepath = joinpath(outdir, txtfilename)
             txtfile = open(txtfilepath, "w")
             close(txtfile) # Just opening in write mode and immediately closing to clear
+	    write(manifestfile, "$(txtfilename)\n")
 
         end
+
+	close(manifestfile)
 
         # Append intervals to correct file according to their bin address
         for (index, name) in pairs(names)
@@ -171,7 +179,7 @@ function intervals_batched_from_dict(dict_file, outdir)
             close(txtfile)
 
         end 
-    
+
 end
 
 # This is where the script actually running the functions starts!!
@@ -181,7 +189,7 @@ if length(ARGS) > 0
         dict_file_path = ARGS[1]
         output_dir_path = ARGS[2] 
         println("Received dict file path: $(dict_file_path)")
-        println("Received output file path: $(output_file_path)")
+        println("Received output file path: $(output_dir_path)")
     else
         println("No arguments received from shell.")
     end 
