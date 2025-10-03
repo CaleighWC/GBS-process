@@ -4,23 +4,60 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=64G
-#SBATCH --job-name="06_combine_gcfs.sub.sh"
+#SBATCH --job-name="06_combine_gvcfs.sub.sh"
 #SBATCH --account=def-dirwin
 #SBATCH --output=job_%j.out
 #SBATCH --mail-user=cwc@zoology.ubc.ca
-#SBATCH --mail-type=ALL 
+#SBATCH --mail-type=ALL
+#SBATCH --array=1-9
 
-# Set jobtime so dates on different outputs from the job will match
+# NOTE: The array parameter must be manually set above to the correct
+# number matching the number of interval lists for the dataset!
 
-jobtime=$(date "+%Y-%b-%d_%H-%M-%S")
+# The following should only run for the first job in the array
+
+scratchpath="/home/cwcharle/scratch"
+
+jobtime_file="GBS-process_step_5_jobtime.sh"
+
+if [$SLURM_ARRAY_TASK_ID == $SLURM_ARRAY_TASK_MIN]; then
+	
+	# Set jobtime so dates on different outputs from the job will match
+
+	jobtime=$(date "+%Y-%b-%d_%H-%M-%S")
+
+	# Move output file to have jobtime in it
+	mv job_${SLURM_JOB_ID}.out job_${SLURM_JOB_ID}_${jobtime}.out
+
+	printf 'jobtime="%s"\n' "${jobtime}" > "${scratchpath}/${jobtime_file}"
+
+fi
+
+# The rest of the script waits until the file is created
+# This means in the other jobs created by the array, nothing will
+# happen until the first job has made the jobtime available
+
+printf "Waiting for shared jobtime file to exist\n"
+
+until [ -f "${scratchpath}/${jobtime_file}" ]; do
+
+	echo "Still waiting..."
+
+	sleep 5
+
+done
+
+# Get jobtime from file created by first so all jobs agree on the jobtime
+
+source ${scratchpath}/${jobtime_file}
+
+printf "The jobtime is ${jobtime}\n"
 
 # Set filename of this file so contents can be printed in job output
 
 this_filename='06_combine_gvcfs.sub.sh'
 
 # Move output file to have jobtime in it
-
-mv job_${SLURM_JOB_ID}.out job_${SLURM_JOB_ID}_${jobtime}.out
 
 printf "The jobtime is ${jobtime}.\n"
 
@@ -59,9 +96,12 @@ genomeindexname='GW2022ref.fa.fai'
 genomedictpath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/extras'
 genomedictname='GW2022ref.dict'
 
+intervallistspath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/interval_lists/2025-Oct-02_14-20-40'
+intervallistsmanifest='lists_manifest.txt'
+
 dataname='GBS_Jun_9_2025_clean_'
 
-out_dir_path='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/combined_vcfs/'
+out_dir_path="/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/combined_vcfs/"
 
 # Copy input files to temp node local directory
 
@@ -83,10 +123,6 @@ echo $(ls ${SLURM_TMPDIR})
 # Make node local output directory to copy back later
 
 mkdir ${SLURM_TMPDIR}/${jobtime}
-mkdir ${SLURM_TMPDIR}/${jobtime}/combined_vcfs
-mkdir ${SLURM_TMPDIR}/${jobtime}/combined_vcfs_logs
-
-printf "\nThe files in SLURM_TMPDIR are:\n"
 
 printf "\nChanging working directory to SLURM_TMPDIR\n"
 cd ${SLURM_TMPDIR}
@@ -107,25 +143,18 @@ printf "\nThat concludes the list of all individuals for which gvcf files exist\
 
 printf "\nAttempting to begin running gatk to create combined vcf file\n"
 
+interval_file=$(sed -n ${SLURM_ARRAY_TASK_ID} ${intervallistspath}/${intervallistsmanifest})
+
 gatk \
 --java-options '-DGATK_STACKTRACE_ON_USER_EXCEPTION=true' \
-CombineGVCFs \
--R ${genomename} \
---verbosity INFO \
--V gvcflist.list \
--O ${jobtime}/combined_vcfs/${dataname}.whole_genome.vcf
+GenomicsDBImport \
+--tmp-dir ${SLURM_TMPDIR} \
+--sample-name-map gvcflist.list \
+--intervals ${interval_file}
+
 
 printf "\nCopying output file from the first step back to projects directory\n"
 cp ${SLURM_TMPDIR}/${jobtime}/combined_vcfs/${dataname}.whole_genome.vcf ${out_dir_path}
-
-printf "\nAttempting to begin running gatk to genotype combined vcf\n"
-gatk \
---java-options '-DGATK_STACKTRACE_ON_USER_EXCEPTION=true' \
-GenotypeGVCFs \
--R ${genomename} \
---verbosity INFO \
--V ${jobtime}/combined_vcfs/${dataname}.whole_genome.vcf \
--O ${jobtime}/combined_vcfs/${dataname}.genotypes.SNPs_only.whole_genome.vcf
 
 printf "\nfinished running gatk\n"
 
