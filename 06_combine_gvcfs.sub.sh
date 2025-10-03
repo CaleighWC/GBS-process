@@ -33,7 +33,7 @@ if [$SLURM_ARRAY_TASK_ID == $SLURM_ARRAY_TASK_MIN]; then
 
 fi
 
-# The rest of the script waits until the file is created
+# The rest of the script which runs for all jobs waits until the file is created
 # This means in the other jobs created by the array, nothing will
 # happen until the first job has made the jobtime available
 
@@ -101,7 +101,9 @@ intervallistsmanifest='lists_manifest.txt'
 
 dataname='GBS_Jun_9_2025_clean_'
 
-out_dir_path="/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/combined_vcfs/"
+out_dir_path="/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/combined_vcfs/${jobtime}"
+
+genomicsdb_out_name="genomicsdb_${SLURM_ARRAY_TASK_ID}"
 
 # Copy input files to temp node local directory
 
@@ -131,7 +133,7 @@ cd ${SLURM_TMPDIR}
 
 printf "\nCreating a variable with the list of all individuals for which gvcf files exist"
 
-ls -1 "${gvcfsname}"/*vcf > gvcflist.list
+gvcflist=$(printf -- " -V %s" "${gvcfsname}"/*vcf)
 
 printf "\nBelow is the list of all individuals for which gvcf files exist\n"
 printf "\n----------------------------\n"
@@ -146,15 +148,15 @@ printf "\nAttempting to begin running gatk to create combined vcf file\n"
 interval_file=$(sed -n ${SLURM_ARRAY_TASK_ID} ${intervallistspath}/${intervallistsmanifest})
 
 gatk \
---java-options '-DGATK_STACKTRACE_ON_USER_EXCEPTION=true' \
+--java-options \
+'-DGATK_STACKTRACE_ON_USER_EXCEPTION=true \
+-Xmx4g -Xms4g' \
 GenomicsDBImport \
 --tmp-dir ${SLURM_TMPDIR} \
---sample-name-map gvcflist.list \
---intervals ${interval_file}
-
-
-printf "\nCopying output file from the first step back to projects directory\n"
-cp ${SLURM_TMPDIR}/${jobtime}/combined_vcfs/${dataname}.whole_genome.vcf ${out_dir_path}
+${gvcflist} \
+--genomicsdb-workspace-path ${genomicsdb_out_name} \
+--intervals ${interval_file} \
+--tmp-dir=${SLURM_TMPDIR}
 
 printf "\nfinished running gatk\n"
 
@@ -165,7 +167,7 @@ echo $(ls ${SLURM_TMPDIR})
 
 printf "\nCopying final output file back to projects directory\n"
 
-cp -r ${SLURM_TMPDIR}/${jobtime}/combined_vcfs/${dataname}.genotypes.SNPs_only.whole_genome.vcf ${out_dir_path}
+cp -r ${SLURM_TMPDIR}/${genomicsdb_out_name} ${out_dir_path}
 
 printf "\nScript complete\n"
 
