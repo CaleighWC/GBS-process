@@ -101,7 +101,7 @@ intervallistsmanifest='lists_manifest.txt'
 
 dataname='GBS_Jun_9_2025_clean_'
 
-out_dir_path="/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/combined_vcfs/${jobtime}"
+out_dir_path="/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/combined_vcfs/combined_vcfs/${jobtime}"
 
 genomicsdb_out_name="genomicsdb_${SLURM_ARRAY_TASK_ID}"
 
@@ -150,7 +150,7 @@ interval_file=$(sed -n ${SLURM_ARRAY_TASK_ID} ${intervallistspath}/${intervallis
 gatk \
 --java-options \
 '-DGATK_STACKTRACE_ON_USER_EXCEPTION=true \
--Xmx4g -Xms4g' \
+-Xmx60g -Xms60g' \
 GenomicsDBImport \
 --tmp-dir ${SLURM_TMPDIR} \
 ${gvcflist} \
