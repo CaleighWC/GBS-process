@@ -22,7 +22,7 @@ jobtime_file="${SLURM_JOB_ID}_jobtime.sh"
 
 # The following should only run for the first job in the array
 
-if [ "$SLURM_ARRAY_TASK_ID" == "$SLURM_ARRAY_TASK_MIN" ]; then
+if [ "$SLURM_ARRAY_TASK_ID" = "$SLURM_ARRAY_TASK_MIN" ]; then
 	
 	# Set jobtime so dates on different outputs from the job will match
 
@@ -154,8 +154,7 @@ GenomicsDBImport \
 --tmp-dir ${SLURM_TMPDIR} \
 ${gvcflist} \
 --genomicsdb-workspace-path ${genomicsdb_out_name} \
---intervals ${interval_file} \
---tmp-dir=${SLURM_TMPDIR}
+--intervals ${interval_file}
 
 printf "\nfinished running gatk\n"
 
