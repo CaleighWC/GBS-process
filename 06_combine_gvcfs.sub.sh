@@ -18,7 +18,7 @@
 
 scratchpath="/home/cwcharle/scratch"
 
-jobtime_file="GBS-process_step_5_jobtime.sh"
+jobtime_file="${SLURM_JOB_ID}_jobtime.sh"
 
 # The following should only run for the first job in the array
 
