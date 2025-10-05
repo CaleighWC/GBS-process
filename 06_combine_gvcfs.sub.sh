@@ -145,7 +145,7 @@ printf "\nThat concludes the list of all individuals for which gvcf files exist\
 
 printf "\nAttempting to begin running gatk to create combined vcf file\n"
 
-interval_file=$(sed -n "${SLURM_ARRAY_TASK_ID}p" "${intervallistspath}/${intervallistsmanifest}")
+interval_file=${intervallistpath}/$(sed -n "${SLURM_ARRAY_TASK_ID}p" "${intervallistspath}/${intervallistsmanifest}")
 
 gatk \
 --java-options \
