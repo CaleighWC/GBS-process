@@ -126,8 +126,8 @@ genomedictname='GW2022ref.dict'
 intervallistspath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/interval_lists/2025-Oct-02_14-20-40'
 intervallistsmanifest='lists_manifest.txt'
 
-# The path where you would like the job output to live (ideally something generated unique to this run)
-out_dir_path="/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/combined_vcfs/combined_vcfs/${jobtime}"
+# The path where you would like the job output to be placed (ideally something generated unique to this run)
+out_dir_path="/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/combined_vcfs/${jobtime}"
 
 # The name of the output (genomicsdb workspace), should contain task ID to avoid overwriting
 genomicsdb_out_name="genomicsdb_${SLURM_ARRAY_TASK_ID}"
@@ -202,9 +202,7 @@ printf "\nCopying final output file back to projects directory in ${out_dir_path
 
 mkdir ${out_dir_path}
 
-mkdir ${out_dir_path}/${SLURM_JOB_ID}
-
-cp -r ${SLURM_TMPDIR}/${genomicsdb_out_name} ${out_dir_path}/${SLURM_JOB_ID}/
+cp -r ${SLURM_TMPDIR}/${genomicsdb_out_name} ${out_dir_path}/
 
 ls -l ${out_dir_path}
 
