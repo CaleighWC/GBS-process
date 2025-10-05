@@ -61,6 +61,10 @@ source ${scratchpath}/${jobtime_file}
 
 printf "The jobtime is ${jobtime}\n"
 
+# Move log file to have jobtime and match other array tasks
+mv job_${SLURM_JOB_ID}.out \
+job_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}_${jobtime}.out
+
 # Set filename of this file so contents can be printed in job output
 
 this_filename='06_combine_gvcfs.sub.sh'
@@ -167,11 +171,15 @@ printf "\nfinished running gatk\n"
 printf "\nThe files in SLURM_TMPDIR are now\n"
 echo $(ls ${SLURM_TMPDIR})
 
-# Move output back to new output directory in projects directory
+# Move output back to output directory in projects directory
 
-printf "\nCopying final output file back to projects directory\n"
+printf "\nCopying final output file back to projects directory in ${out_dir_path}\n"
 
-cp -r ${SLURM_TMPDIR}/${genomicsdb_out_name} ${out_dir_path}
+mkdir ${out_dir_path}/${SLURM_JOB_ID}
+
+cp -r ${SLURM_TMPDIR}/${genomicsdb_out_name} ${out_dir_path}/${SLURM_JOB_ID}/
+
+ls -l ${out_dir_path}
 
 printf "\nScript complete\n"
 
