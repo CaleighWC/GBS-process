@@ -72,8 +72,8 @@ source ${scratchpath}/${jobtime_file}
 printf "The jobtime is ${jobtime}\n"
 
 # Move log file to have jobtime and match other array tasks
-mv job_${SLURM_JOB_ID}.out \
-job_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}_${jobtime}.out
+logfilename = "job_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}_${jobtime}.out"
+mv job_${SLURM_JOB_ID}.out ${logfilename}
 
 # Set filename of this file so contents can be printed in job output
 
@@ -204,7 +204,11 @@ mkdir ${out_dir_path}
 
 cp -r ${SLURM_TMPDIR}/${genomicsdb_out_name} ${out_dir_path}/
 
-ls -l ${out_dir_path}
+printf "\n These are the files in the output directory\n"
+ls ${out_dir_path}
+
+printf "\n Moving logfile to the output folder \n"
+mv ${logfilename} ${out_dir_path}
 
 printf "\nScript complete\n"
 
