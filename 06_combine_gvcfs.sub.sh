@@ -18,7 +18,7 @@
 
 scratchpath="/home/cwcharle/scratch"
 
-jobtime_file="${SLURM_JOB_ID}_jobtime.sh"
+jobtime_file="${SLURM_ARRAY_JOB_ID}_jobtime.sh"
 
 # The following should only run for the first job in the array
 
@@ -31,7 +31,10 @@ if [ "$SLURM_ARRAY_TASK_ID" = "$SLURM_ARRAY_TASK_MIN" ]; then
 	# Move output file to have jobtime in it
 	mv job_${SLURM_JOB_ID}.out job_${SLURM_JOB_ID}_${jobtime}.out
 
+	# Write jobtime file
 	printf 'jobtime="%s"\n' "${jobtime}" > "${scratchpath}/${jobtime_file}"
+	printf "\n Leader writing file: ${scratchpath}/${jobtime_file}"
+	ls -l "${scratchpath}"
 
 fi
 
@@ -41,11 +44,14 @@ fi
 
 printf "Waiting for shared jobtime file to exist\n"
 
+printf "Follower checking: ${scratchpath}/${jobtime_file}" 
+ls -l ${scratchpath}
+
 until [ -f "${scratchpath}/${jobtime_file}" ]; do
 
 	echo "Still waiting..."
 
-	sleep 5
+	sleep 10
 
 done
 
