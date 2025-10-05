@@ -28,9 +28,6 @@ if [ "$SLURM_ARRAY_TASK_ID" = "$SLURM_ARRAY_TASK_MIN" ]; then
 
 	jobtime=$(date "+%Y-%b-%d_%H-%M-%S")
 
-	# Move output file to have jobtime in it
-	mv job_${SLURM_JOB_ID}.out job_${SLURM_JOB_ID}_${jobtime}.out
-
 	# Write jobtime file
 	printf 'jobtime="%s"\n' "${jobtime}" > "${scratchpath}/${jobtime_file}"
 	printf "\n Leader writing file: ${scratchpath}/${jobtime_file}"
