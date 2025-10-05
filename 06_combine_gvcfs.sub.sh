@@ -29,6 +29,8 @@ scratchpath="/home/cwcharle/scratch"
 tmp_jobtime_file="setting_jobtime.sh"
 jobtime_file="${SLURM_ARRAY_JOB_ID}_jobtime.sh"
 
+init_wd=$(getwd)
+
 # The following should only run for the first job in the array
 
 if [ "$SLURM_ARRAY_TASK_ID" = "$SLURM_ARRAY_TASK_MIN" ]; then
@@ -212,7 +214,7 @@ printf "\n These are the files in the output directory\n"
 ls ${out_dir_path}
 
 printf "\n Moving logfile to the output folder \n"
-mv ${logfilename} ${out_dir_path}
+${init_wd)/${logfilename} ${out_dir_path}
 
 printf "\nScript complete\n"
 
