@@ -137,7 +137,7 @@ gvcflist=$(printf -- " -V %s" "${gvcfsname}"/*vcf)
 
 printf "\nBelow is the list of all individuals for which gvcf files exist\n"
 printf "\n----------------------------\n"
-cat gvcflist.list
+echo ${gvcflist}
 printf "\n----------------------------\n"
 printf "\nThat concludes the list of all individuals for which gvcf files exist\n"
 
