@@ -72,7 +72,7 @@ source ${scratchpath}/${jobtime_file}
 printf "The jobtime is ${jobtime}\n"
 
 # Move log file to have jobtime and match other array tasks
-logfilename = "job_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}_${jobtime}.out"
+logfilename="job_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}_${jobtime}.out"
 mv job_${SLURM_JOB_ID}.out ${logfilename}
 
 # Set filename of this file so contents can be printed in job output
@@ -83,6 +83,10 @@ this_filename='06_combine_gvcfs.sub.sh'
 printf "The jobtime is ${jobtime}.\n"
 
 printf "\nThe SLURM Job ID is ${SLURM_JOB_ID}\n"
+
+printf "\nThe SLURM Array Job ID is ${SLURM_ARRAY_JOB_ID}"
+
+printf "\nThe SLURM Array Task ID is ${SLURM_ARRAY_TASK_ID}"
 
 printf "\nThe submit script for the job is printed below:\n"
 printf "_______________________________________________\n"
