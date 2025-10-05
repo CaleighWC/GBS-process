@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --time=7-00:00:00
+#SBATCH --time=2-00:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=64G
@@ -14,13 +14,15 @@
 # NOTE: The array parameter must be manually set above to the correct
 # number matching the number of interval lists for the dataset!
 
-# The following should only run for the first job in the array
+# Setting initial variables
 
 scratchpath="/home/cwcharle/scratch"
 
 jobtime_file="GBS-process_step_5_jobtime.sh"
 
-if [$SLURM_ARRAY_TASK_ID == $SLURM_ARRAY_TASK_MIN]; then
+# The following should only run for the first job in the array
+
+if [ "$SLURM_ARRAY_TASK_ID" == "$SLURM_ARRAY_TASK_MIN" ]; then
 	
 	# Set jobtime so dates on different outputs from the job will match
 
@@ -122,9 +124,7 @@ cp ${genomedictpath}/${genomedictname} ${SLURM_TMPDIR}
 printf "\nThe files in SLURM_TMPDIR are:\n"
 echo $(ls ${SLURM_TMPDIR})
 
-# Make node local output directory to copy back later
-
-mkdir ${SLURM_TMPDIR}/${jobtime}
+# Change working directory to the temporary directory on the node
 
 printf "\nChanging working directory to SLURM_TMPDIR\n"
 cd ${SLURM_TMPDIR}
@@ -145,12 +145,11 @@ printf "\nThat concludes the list of all individuals for which gvcf files exist\
 
 printf "\nAttempting to begin running gatk to create combined vcf file\n"
 
-interval_file=$(sed -n ${SLURM_ARRAY_TASK_ID} ${intervallistspath}/${intervallistsmanifest})
+interval_file=$(sed -n "${SLURM_ARRAY_TASK_ID}p" "${intervallistspath}/${intervallistsmanifest}")
 
 gatk \
 --java-options \
-'-DGATK_STACKTRACE_ON_USER_EXCEPTION=true \
--Xmx60g -Xms60g' \
+'-DGATK_STACKTRACE_ON_USER_EXCEPTION=true -Xmx60g -Xms60g' \
 GenomicsDBImport \
 --tmp-dir ${SLURM_TMPDIR} \
 ${gvcflist} \
