@@ -13,11 +13,20 @@
 
 # NOTE: The array parameter must be manually set above to the correct
 # number matching the number of interval lists for the dataset!
+# Above is one of 3 spots you need to add variables if you are running
+# the script. ADD VARIABLES (1/3)
 
 # Setting initial variables
+# Below is the second spot you need to ADD VARIABLES (2/3)
+# Scratchpath is just any directory on the shared filesystem where it's okay for
+# the script to create a small temporary file that sets the same jobtime
+# across the different jobs created by the array. The scratch directory
+# on the cluster is fine. This file can be deleted safely after all
+# members of the array are done running.
 
 scratchpath="/home/cwcharle/scratch"
 
+tmp_jobtime_file="setting_jobtime.sh"
 jobtime_file="${SLURM_ARRAY_JOB_ID}_jobtime.sh"
 
 # The following should only run for the first job in the array
@@ -29,8 +38,12 @@ if [ "$SLURM_ARRAY_TASK_ID" = "$SLURM_ARRAY_TASK_MIN" ]; then
 	jobtime=$(date "+%Y-%b-%d_%H-%M-%S")
 
 	# Write jobtime file
-	printf 'jobtime="%s"\n' "${jobtime}" > "${scratchpath}/${jobtime_file}"
-	printf "\n Leader writing file: ${scratchpath}/${jobtime_file}"
+	printf 'jobtime="%s"\n' "${jobtime}" > "${scratchpath}/${tmp_jobtime_file}"
+	printf "\n Leader wrote file: ${scratchpath}/${tmp_jobtime_file}"
+	ls -l "${scratchpath}"
+
+	printf "\n Leader moving file to final dest: ${scratchpath}/${jobtime_file}"
+	mv ${scratchpath}/${tmp_jobtime_file} ${scratchpath}/${jobtime_file}
 	ls -l "${scratchpath}"
 
 fi
@@ -66,8 +79,7 @@ job_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}_${jobtime}.out
 
 this_filename='06_combine_gvcfs.sub.sh'
 
-# Move output file to have jobtime in it
-
+# Print some helpful variables and record state of submit script
 printf "The jobtime is ${jobtime}.\n"
 
 printf "\nThe SLURM Job ID is ${SLURM_JOB_ID}\n"
@@ -80,6 +92,8 @@ cat ${this_filename}
 printf "\n_____________________________________________"
 printf "\nThat concludes the submit script for the job.\n"
 
+
+# Load modules
 printf "\nCurrently loaded modules\n"
 module list
 
@@ -92,7 +106,9 @@ printf "\nCurrently loaded modules\n"
 module list
 
 # Create variables with paths and names of input and output files
+# This is the last spot where you need to ADD VARIABLES (3/3)
 
+# The path to directory and then the name of directory containing your individual gvcf files
 gvcfspath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/gvcf'
 gvcfsname='2025-Aug-21_11-57-57'
 
@@ -102,19 +118,22 @@ genomename='GW2022ref.fa'
 genomeindexpath="${genomepath}"
 genomeindexname='GW2022ref.fa.fai'
 
+# The path to directory containing your .dict file and then name of .dict file
 genomedictpath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/extras'
 genomedictname='GW2022ref.dict'
 
+# The path to directory containing the interval lists and then filename of manifest
 intervallistspath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/interval_lists/2025-Oct-02_14-20-40'
 intervallistsmanifest='lists_manifest.txt'
 
-dataname='GBS_Jun_9_2025_clean_'
-
+# The path where you would like the job output to live (ideally something generated unique to this run)
 out_dir_path="/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/combined_vcfs/combined_vcfs/${jobtime}"
 
+# The name of the output (genomicsdb workspace), should contain task ID to avoid overwriting
 genomicsdb_out_name="genomicsdb_${SLURM_ARRAY_TASK_ID}"
 
 # Copy input files to temp node local directory
+# This makes reads/writes faster during the job
 
 printf "\nCopying gvcfs to node local storage\n"
 cp -r ${gvcfspath}/${gvcfsname} ${SLURM_TMPDIR}
@@ -131,12 +150,19 @@ cp ${genomedictpath}/${genomedictname} ${SLURM_TMPDIR}
 printf "\nThe files in SLURM_TMPDIR are:\n"
 echo $(ls ${SLURM_TMPDIR})
 
-# Change working directory to the temporary directory on the node
+# Change working directory to the temp node local directory
+# This is just so we can use smaller file paths and all outputs
+# are generated on the node
 
 printf "\nChanging working directory to SLURM_TMPDIR\n"
 cd ${SLURM_TMPDIR}
 
 # Make list of individuals for which gvcfs exist
+# We are reading all the files ending in vcf in the directory given
+# earlier and turning it into a variable with "-V" printed before 
+# each one. I like this because it will automatically get the names
+# from the headers, whereas when you provide a sample map you are
+# providing the names.
 
 printf "\nCreating a variable with the list of all individuals for which gvcf files exist"
 
@@ -148,7 +174,9 @@ echo ${gvcflist}
 printf "\n----------------------------\n"
 printf "\nThat concludes the list of all individuals for which gvcf files exist\n"
 
-# Run the tools and write their output to the node local output file
+# Run gatk and write output to the output file specified earlier
+# The correct interval list file will be chosen by reading the line
+# in the manifest corresponding to this task ID in the array. 
 
 printf "\nAttempting to begin running gatk to create combined vcf file\n"
 
@@ -171,6 +199,8 @@ echo $(ls ${SLURM_TMPDIR})
 # Move output back to output directory in projects directory
 
 printf "\nCopying final output file back to projects directory in ${out_dir_path}\n"
+
+mkdir ${out_dir_path}
 
 mkdir ${out_dir_path}/${SLURM_JOB_ID}
 
