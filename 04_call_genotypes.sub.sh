@@ -4,7 +4,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=32G
-#SBATCH --job-name="03_align_combine.sub.sh"
+#SBATCH --job-name="04_call_genotypes.sub.sh"
 #SBATCH --account=def-dirwin
 #SBATCH --output=job_%j.out
 #SBATCH --mail-user=cwc@zoology.ubc.ca
@@ -16,7 +16,7 @@ jobtime=$(date "+%Y-%b-%d_%H-%M-%S")
 
 # Set filename of this file so contents can be printed in job output
 
-this_filename='03_align_combine.sub.sh'
+this_filename='04_call_genotypes.sub.sh'
 
 # Move output file to have jobtime in it
 
@@ -81,7 +81,7 @@ java -jar $EBROOTPICARD/picard.jar CreateSequenceDictionary \
 REFERENCE=${genomepath}/${genomename} \
 OUTPUT=${outdictpath}/${outdictname}
 
-# Copy input files to temp node local directory as input
+# Copy input files to temp node local directory
 
 printf "\nCopying prefix list file to node local storage\n"
 cp ${outlistpath}/${outlistname} ${SLURM_TMPDIR} 

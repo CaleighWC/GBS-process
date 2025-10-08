@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --time=00:05:00
+#SBATCH --time=1-00:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=64G
@@ -47,15 +47,15 @@ module list
 
 # Create variables with paths and names of input and output files
 
-barcodespath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/extras'
+barcodespath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/extras/'
 barcodesname='barcodes_CaleighWC_Jun_9_2025_data.txt'
 
-cleandatapath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/clean_data'
-cleandataname='/2025-Aug-14_12-46-15'
+cleandatapath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/clean_data/'
+cleandataname='2025-Aug-14_12-46-15'
 
-dataname='GBS_Jun_9_2025_'
+dataname='GBS_Jun_9_2025_clean_'
 
-outlistpath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/extras'
+outlistpath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/extras/'
 outlistname="prefix.list.${dataname}.bwa"
 
 out_dir_path='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/clean_data_trim/'
@@ -64,9 +64,6 @@ out_dir_path='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/clean_data
 printf "\nMaking list of individuals from the barcode file\n"
 
 awk -v dataname="${dataname}" '{print dataname $1}' ${barcodespath}/${barcodesname} > ${outlistpath}/${outlistname}
-
-# Temporarily exit here for debugging
-exit
 
 # Copy input files to temp node local directory as input and make working directory
 
