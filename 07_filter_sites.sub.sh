@@ -41,7 +41,8 @@ module list
 printf "\nLoading modules for job\n"
 module load \
 StdEnv/2023 \
-vcftools/0.1.16
+vcftools/0.1.16 \
+perl/5.36.1
 
 printf "\nCurrently loaded modules\n"
 module list
