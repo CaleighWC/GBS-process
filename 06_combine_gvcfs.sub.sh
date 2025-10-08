@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --time=0-01:00:00
+#SBATCH --time=1-00:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=64G
@@ -29,7 +29,8 @@ scratchpath="/home/cwcharle/scratch"
 tmp_jobtime_file="setting_jobtime.sh"
 jobtime_file="${SLURM_ARRAY_JOB_ID}_jobtime.sh"
 
-init_wd=$(getwd)
+init_wd=$(pwd)
+printf "\nThe initial working directory is ${init_wd}"
 
 # The following should only run for the first job in the array
 
@@ -135,8 +136,11 @@ intervallistsmanifest='lists_manifest.txt'
 # The path where you would like the job output to be placed (ideally something generated unique to this run)
 out_dir_path="/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/combined_vcfs/${jobtime}"
 
-# The name of the output (genomicsdb workspace), should contain task ID to avoid overwriting
+# The name of the genomicsdb workspace
 genomicsdb_out_name="genomicsdb_${SLURM_ARRAY_TASK_ID}"
+
+# The name of the genotyped combined vcf, should contain task ID to avoid overwriting
+vcf_out_name="comb_vcf_${SLURM_ARRAY_TASK_ID}.vcf.gz"
 
 # Copy input files to temp node local directory
 # This makes reads/writes faster during the job
@@ -184,7 +188,7 @@ printf "\nThat concludes the list of all individuals for which gvcf files exist\
 # The correct interval list file will be chosen by reading the line
 # in the manifest corresponding to this task ID in the array. 
 
-printf "\nAttempting to begin running gatk to create combined vcf file\n"
+printf "\nRunning gatk to create combined genomicsDB database file\n"
 
 interval_file=${intervallistspath}/$(sed -n "${SLURM_ARRAY_TASK_ID}p" "${intervallistspath}/${intervallistsmanifest}")
 
@@ -192,12 +196,24 @@ gatk \
 --java-options \
 '-DGATK_STACKTRACE_ON_USER_EXCEPTION=true -Xmx60g -Xms60g' \
 GenomicsDBImport \
---tmp-dir ${SLURM_TMPDIR} \
+	--tmp-dir ${SLURM_TMPDIR} \
 ${gvcflist} \
---genomicsdb-workspace-path ${genomicsdb_out_name} \
---intervals ${interval_file}
+	--genomicsdb-workspace-path ${genomicsdb_out_name} \
+	--intervals ${interval_file}
 
-printf "\nfinished running gatk\n"
+printf "\nfinished running gatk GenomicsDBImport\n"
+
+printf "\nThe files in SLURM_TMPDIR are now\n"
+echo $(ls ${SLURM_TMPDIR})
+
+printf "\nRunning gatk to genotype combined genomicsDB database file\n"
+gatk \
+--java-options \
+'-DGATK_STACKTRACE_ON_USER_EXCEPTION=true -Xmx60g -Xms60g' \
+GenotypeGVCFs \
+	-R ${genomename} \
+	-V gendb://${genomicsdb_out_name} \
+	-O ${vcf_out_name}
 
 printf "\nThe files in SLURM_TMPDIR are now\n"
 echo $(ls ${SLURM_TMPDIR})
@@ -208,13 +224,13 @@ printf "\nCopying final output file back to projects directory in ${out_dir_path
 
 mkdir ${out_dir_path}
 
-cp -r ${SLURM_TMPDIR}/${genomicsdb_out_name} ${out_dir_path}/
+cp -r ${SLURM_TMPDIR}/${vcf_out_name} ${out_dir_path}/
 
 printf "\n These are the files in the output directory\n"
 ls ${out_dir_path}
 
 printf "\n Moving logfile to the output folder \n"
-${init_wd)/${logfilename} ${out_dir_path}
+${init_wd}
+mv ${init_wd}/${logfilename} ${out_dir_path}
 
 printf "\nScript complete\n"
-
