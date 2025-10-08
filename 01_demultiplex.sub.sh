@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --time=1-00:00:00
+#SBATCH --time=10:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=48G
@@ -10,29 +10,19 @@
 #SBATCH --mail-user=cwc@zoology.ubc.ca
 #SBATCH --mail-type=ALL 
 
-# Set jobtime so dates on different outputs from the job will match
-
-jobtime=$(date "+%Y-%b-%d_%H-%M-%S")
-
 # Set filename of this file so contents can be printed in job output
 
 this_filename='01_demultiplex.sub.sh'
 
-# Move output file to have jobtime in it
+# Set filename of prologue file
 
-mv job_${SLURM_JOB_ID}.out job_${SLURM_JOB_ID}_${jobtime}.out
+prologue_filename='tools/single_job_prologue.sh'
 
-printf "The jobtime is ${jobtime}.\n"
+# Source prologue script (creates jobtime and prints scripts to log)
 
-printf "\nThe SLURM Job ID is ${SLURM_JOB_ID}\n"
+source ${prologue_filename}
 
-printf "\nThe submit script for the job is printed below:\n"
-printf "_______________________________________________\n"
-
-cat ${this_filename}
-
-printf "\n_____________________________________________"
-printf "\nThat concludes the submit script for the job.\n"
+# Load modules
 
 printf "\nCurrently loaded modules\n"
 module list
