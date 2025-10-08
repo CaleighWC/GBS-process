@@ -3,7 +3,7 @@
 #SBATCH --time=0-05:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=64G
+#SBATCH --mem=32G
 #SBATCH --job-name="06_combine_gvcfs.sub.sh"
 #SBATCH --account=def-dirwin
 #SBATCH --output=job_%j.out
@@ -26,7 +26,7 @@
 
 scratchpath="~/scratch"
 
-this_filename="06_combine_gvcfs.sub.sh"
+this_filename="07_filter_sites.sub.sh"
 
 prologue_filename="tools/array_job_prologue.sh"
 
@@ -41,7 +41,7 @@ module list
 printf "\nLoading modules for job\n"
 module load \
 StdEnv/2023 \
-gatk/4.6.1.0
+vcftools/0.1.16
 
 printf "\nCurrently loaded modules\n"
 module list
@@ -50,14 +50,14 @@ module list
 # This is the last spot where you need to ADD VARIABLES (3/3)
 
 # The path where you would like the job output to be placed (ideally something generated unique to this run)
-out_dir_path="/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/combined_vcfs/${jobtime}"
+out_dir_path="/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/filtered_vcfs/${jobtime}"
 
 # The path and name of the genotyped vcf to use as input
 vcf_in_path="/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/combined_vcfs/2025-Oct-07_19-09-41"
-vcf_in_name="comb_vcf_${SLURM_ARRAY_TASK_ID}.vcf.gz"
+vcf_in_name="comb_vcf_${SLURM_ARRAY_TASK_ID}.vcf"
 
 # The name of the output filtered vcf
-vcf_out_name="comb_vcf_filtered_${SLURM_ARRAY_TASK_ID}.vcf.gz"
+vcf_out_name="comb_vcf_filtered_${SLURM_ARRAY_TASK_ID}.vcf"
 
 # Copy input files to temp node local directory
 # This makes reads/writes faster during the job
@@ -74,14 +74,62 @@ echo $(ls ${SLURM_TMPDIR})
 printf "\nChanging working directory to SLURM_TMPDIR\n"
 cd ${SLURM_TMPDIR}
 
+# Unzip input vcf if zipped
+gunzip ${vcf_in_path}.gz
+
 # Remove indels and SNPs with more than two alleles
 
 printf "\nRunning vcftools to remove indels and SNPs with more than two alleles\n"
 
-
+vcftools \
+	--vcf ${vcf_in_name} \
+	--remove-indels \
+	--max-alleles 2 \
+	--recode \
+	--recode-INFO-all \
+	--out ${vcf_step_1_complete}
 
 printf "\nThe files in SLURM_TMPDIR are now\n"
 echo $(ls ${SLURM_TMPDIR})
+
+# Remove sites with more than 60% missing genotypes
+
+printf "\nRunning vcftools to remove sites with more than 60% missing genotypes\n"
+
+vcftools \
+	--vcf ${vcf_step_1_complete} \
+	--max-missing 0.4 \
+	--recode \
+	--recode-INFO-all \
+	--out ${vcf_step_2_complete} \
+
+printf "\nThe files in SLURM_TMPDIR are now\n"
+echo $(ls ${SLURM_TMPDIR})
+
+# Filter out sites with MQ lower than 20.0
+
+printf "\nRunning Greg Owens' script to remove sites with MQ lower than 20.0\n"
+
+cat ${vcf_step_2_complete} | \
+perl ${init_wd}/tools/vcf2minmq.pl 20.0 > \
+${vcf_step_3_complete}
+
+printf "\nThe files in SLURM_TMPDIR are now\n"
+echo $(ls ${SLURM_TMPDIR})
+
+# Filter out sites with heterozygosity above 60%
+
+printf "\nRunning Greg Owens' script to remove sites with heterozygosity above 60%"
+
+cat ${vcf_step_3_complete} | \
+perl ${init_wd}/tools/vcf2maxhet.pl 0.6 > \
+${vcf_out_name}
+
+printf "\nThe files in SLURM_TMPDIR are now\n"
+echo $(ls ${SLURM_TMPDIR})
+
+# Zip final output vcf file
+gzip ${vcf_out_name}
 
 # Move output back to output directory in projects directory
 
@@ -89,7 +137,7 @@ printf "\nCopying final output file back to projects directory in ${out_dir_path
 
 mkdir ${out_dir_path}
 
-cp -r ${SLURM_TMPDIR}/${vcf_out_name} ${out_dir_path}/
+cp -r ${SLURM_TMPDIR}/${vcf_out_name}.gz ${out_dir_path}/
 
 printf "\n These are the files in the output directory\n"
 ls ${out_dir_path}
