@@ -24,7 +24,7 @@
 # on the cluster is fine. This file can be deleted safely after all
 # members of the array are done running.
 
-scratchpath="~/scratch"
+scratchpath="/home/cwcharle/scratch"
 
 this_filename="07_filter_sites.sub.sh"
 
@@ -75,9 +75,6 @@ echo $(ls ${SLURM_TMPDIR})
 printf "\nChanging working directory to SLURM_TMPDIR\n"
 cd ${SLURM_TMPDIR}
 
-# Unzip input vcf if zipped
-gunzip ${vcf_in_path}.gz
-
 # Remove indels and SNPs with more than two alleles
 
 printf "\nRunning vcftools to remove indels and SNPs with more than two alleles\n"
@@ -88,21 +85,21 @@ vcftools \
 	--max-alleles 2 \
 	--recode \
 	--recode-INFO-all \
-	--out ${vcf_step_1_complete}
+	--out step_1_complete
 
 printf "\nThe files in SLURM_TMPDIR are now\n"
 echo $(ls ${SLURM_TMPDIR})
 
-# Remove sites with more than 60% missing genotypes
+# Remove sites with more than 60 percent missing genotypes
 
-printf "\nRunning vcftools to remove sites with more than 60% missing genotypes\n"
+printf "\nRunning vcftools to remove sites with more than 60 percent missing genotypes\n"
 
 vcftools \
-	--vcf ${vcf_step_1_complete} \
+	--vcf step_1_complete.recode.vcf \
 	--max-missing 0.4 \
 	--recode \
 	--recode-INFO-all \
-	--out ${vcf_step_2_complete} \
+	--out step_2_complete \
 
 printf "\nThe files in SLURM_TMPDIR are now\n"
 echo $(ls ${SLURM_TMPDIR})
@@ -111,18 +108,18 @@ echo $(ls ${SLURM_TMPDIR})
 
 printf "\nRunning Greg Owens' script to remove sites with MQ lower than 20.0\n"
 
-cat ${vcf_step_2_complete} | \
+cat step_2_complete.recode.vcf | \
 perl ${init_wd}/tools/vcf2minmq.pl 20.0 > \
-${vcf_step_3_complete}
+step_3_complete.vcf
 
 printf "\nThe files in SLURM_TMPDIR are now\n"
 echo $(ls ${SLURM_TMPDIR})
 
-# Filter out sites with heterozygosity above 60%
+# Filter out sites with heterozygosity above 60 percent
 
-printf "\nRunning Greg Owens' script to remove sites with heterozygosity above 60%"
+printf "\nRunning Greg Owens' script to remove sites with heterozygosity above 60 percent"
 
-cat ${vcf_step_3_complete} | \
+cat step_3_complete.vcf | \
 perl ${init_wd}/tools/vcf2maxhet.pl 0.6 > \
 ${vcf_out_name}
 
