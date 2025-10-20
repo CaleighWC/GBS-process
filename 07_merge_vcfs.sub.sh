@@ -4,7 +4,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=16G
-#SBATCH --job-name="08_merge_vcfs.sub.sh"
+#SBATCH --job-name="07_merge_vcfs.sub.sh"
 #SBATCH --account=def-dirwin
 #SBATCH --output=job_%j.out
 #SBATCH --mail-user=cwc@zoology.ubc.ca
@@ -16,7 +16,7 @@ jobtime=$(date "+%Y-%b-%d_%H-%M-%S")
 
 # Set filename of this file so contents can be printed in job output
 
-this_filename='08_merge_vcfs.sub.sh'
+this_filename='07_merge_vcfs.sub.sh'
 
 # Move output file to have jobtime in it
 
