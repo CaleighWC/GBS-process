@@ -51,6 +51,9 @@ in_vcf_path='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/filtered_vc
 in_vcf_dir='2025-Oct-09_11-19-15'
 in_vcf_prefix='comb_vcf_filtered'
 
+dict_path='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/extras/'
+dict_name='GW2022ref.dict'
+
 out_vcf_name='all_individuals_all_sections_filtered.vcf.gz'
 
 out_dir_path='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/merged_vcf'
@@ -71,11 +74,13 @@ mkdir ${SLURM_TMPDIR}/${jobtime}
 
 cd ${SLURM_TMPDIR}
 
-$(ls ${in_vcf_prefix}*) > vcfs.list
+ls ${in_vcf_prefix}* > vcfs.list
 
-picard MergeVcfs \
+java -jar $EBROOTPICARD/picard.jar \
+MergeVcfs \
 	I=vcfs.list \
-	O=${jobtime}/${out_vcf_name}
+	O=${jobtime}/${out_vcf_name} \
+	D=${dict_path}/${dict_name}
 
 # Move output back to new output directory in projects directory
 

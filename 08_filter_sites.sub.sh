@@ -117,7 +117,7 @@ echo $(ls ${SLURM_TMPDIR})
 
 # Filter out sites with heterozygosity above 60 percent
 
-printf "\nRunning Greg Owens' script to remove sites with heterozygosity above 60 percent"
+printf "\nRunning Greg Owens' script to remove sites with heterozygosity above 60 percent\n"
 
 cat step_3_complete.vcf | \
 perl ${init_wd}/tools/vcf2maxhet.pl 0.6 > \
@@ -135,7 +135,12 @@ printf "\nCopying final output file back to projects directory in ${out_dir_path
 
 mkdir ${out_dir_path}
 
-cp -r ${SLURM_TMPDIR}/${vcf_out_name}.gz ${out_dir_path}/
+cp ${SLURM_TMPDIR}/${vcf_out_name}.gz ${out_dir_path}/
+
+# Copy step 3 back to output directory for debugging purposes
+
+mv step_3_complete.vcf step_3_complete_${SLURM_ARRAY_TASK_ID}.vcf
+cp ${SLURM_TMPDIR}/step_3_complete_${SLURM_ARRAY_TASK_ID}.vcf ${out_dir_path}
 
 printf "\n These are the files in the output directory\n"
 ls ${out_dir_path}
