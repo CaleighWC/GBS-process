@@ -24,7 +24,7 @@
 # on the cluster is fine. This file can be deleted safely after all
 # members of the array are done running.
 
-scratchpath="~/scratch"
+scratchpath="/home/cwcharle/scratch"
 
 this_filename="06_combine_gvcfs.sub.sh"
 
@@ -41,7 +41,8 @@ module list
 printf "\nLoading modules for job\n"
 module load \
 StdEnv/2023 \
-gatk/4.6.1.0
+gatk/4.6.1.0 \
+picard/3.1.0
 
 printf "\nCurrently loaded modules\n"
 module list
@@ -74,7 +75,7 @@ out_dir_path="/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/combined_v
 genomicsdb_out_name="genomicsdb_${SLURM_ARRAY_TASK_ID}"
 
 # The name of the genotyped combined vcf, should contain task ID to avoid overwriting
-vcf_out_name="comb_vcf_${SLURM_ARRAY_TASK_ID}.vcf.gz"
+vcf_out_name="all_individuals_section_${SLURM_ARRAY_TASK_ID}.vcf.gz"
 
 # Copy input files to temp node local directory
 # This makes reads/writes faster during the job
@@ -147,10 +148,19 @@ gatk \
 GenotypeGVCFs \
 	-R ${genomename} \
 	-V gendb://${genomicsdb_out_name} \
-	-O ${vcf_out_name}
+	-O ${vcf_out_name}.unsorted
 
 printf "\nThe files in SLURM_TMPDIR are now\n"
 echo $(ls ${SLURM_TMPDIR})
+
+# Sort output file to prevent downstream problems
+printf "\nRunning picard to sort output vcf\n"
+
+java -jar $EBROOTPICARD/picard.jar \
+SortVcf \
+	I=${vcf_out_name}.unsorted \
+	O=${vcf_out_name} \
+	SD=${genomedictname}
 
 # Move output back to output directory in projects directory
 
