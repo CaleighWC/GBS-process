@@ -4,7 +4,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=16G
-#SBATCH --job-name="07_merge_vcfs.sub.sh"
+#SBATCH --job-name="07_merge_contig_batch_vcfs.sub.sh"
 #SBATCH --account=def-dirwin
 #SBATCH --output=job_%j.out
 #SBATCH --mail-user=cwc@zoology.ubc.ca
@@ -16,7 +16,7 @@ jobtime=$(date "+%Y-%b-%d_%H-%M-%S")
 
 # Set filename of this file so contents can be printed in job output
 
-this_filename='07_merge_vcfs.sub.sh'
+this_filename='07_merge_contig_batch_vcfs.sub.sh'
 
 # Move output file to have jobtime in it
 
@@ -47,9 +47,9 @@ module list
 
 # Create variables with paths and names of input and output files
 
-in_vcf_path='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/filtered_vcfs/'
-in_vcf_dir='2025-Oct-09_11-19-15'
-in_vcf_prefix='comb_vcf_filtered'
+in_vcf_path='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/combined_vcfs/'
+in_vcf_dir='2025-Oct-07_19-09-41'
+in_vcf_prefix='comb_vcf_'
 
 dict_path='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/extras/'
 dict_name='GW2022ref.dict'

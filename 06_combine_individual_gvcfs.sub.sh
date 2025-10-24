@@ -4,7 +4,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=64G
-#SBATCH --job-name="06_genotype_gvcfs.sub.sh"
+#SBATCH --job-name="06_combine_individual_gvcfs.sub.sh"
 #SBATCH --account=def-dirwin
 #SBATCH --output=job_%j.out
 #SBATCH --mail-user=cwc@zoology.ubc.ca
@@ -26,7 +26,7 @@
 
 scratchpath="/home/cwcharle/scratch"
 
-this_filename="06_genotype_gvcfs.sub.sh"
+this_filename="06_combine_individual_gvcfs.sub.sh"
 
 prologue_filename="tools/array_job_prologue.sh"
 
