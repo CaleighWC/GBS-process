@@ -18,21 +18,11 @@ jobtime=$(date "+%Y-%b-%d_%H-%M-%S")
 
 this_filename='07_merge_contig_batch_vcfs.sub.sh'
 
-# Move output file to have jobtime in it
+# Set filename of prologue script
 
-mv job_${SLURM_JOB_ID}.out job_${SLURM_JOB_ID}_${jobtime}.out
+prologue_filename='/tools/single_job_prologue.sh'
 
-printf "The jobtime is ${jobtime}.\n"
-
-printf "\nThe SLURM Job ID is ${SLURM_JOB_ID}\n"
-
-printf "\nThe submit script for the job is printed below:\n"
-printf "_______________________________________________\n"
-
-cat ${this_filename}
-
-printf "\n_____________________________________________"
-printf "\nThat concludes the submit script for the job.\n"
+# Load modules for job
 
 printf "\nCurrently loaded modules\n"
 module list
@@ -54,7 +44,7 @@ in_vcf_prefix='all_individuals_section_'
 dict_path='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/extras/'
 dict_name='GW2022ref.dict'
 
-out_vcf_name='all_individuals_all_sections_filtered.vcf.gz'
+out_vcf_name='all_individuals_all_contigs.vcf.gz'
 
 out_dir_path='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/merged_vcf'
 
@@ -88,6 +78,9 @@ printf "\nCopying output files back to projects directory\n"
 
 mkdir ${out_dir_path}
 cp -r ${SLURM_TMPDIR}/${jobtime} ${out_dir_path}
+
+# Move log file to output directory once job is complete
+mv ${initwd}/${log_filename} ${out_dir_path}
 
 printf "\nScript complete\n"
 
