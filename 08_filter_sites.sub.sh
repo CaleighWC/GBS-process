@@ -42,7 +42,7 @@ out_dir_path="/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/filtered_v
 
 # The path and name of the genotyped vcf to use as input
 vcf_in_path="/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/merged_vcf/2025-Oct-28_10-36-39"
-vcf_in_name="all_individuals_all_contigs.vcf.gz"
+vcf_in_name="all_individuals_all_contigs.vcf"
 
 # The name of the output filtered vcf
 vcf_out_name="all_individuals_all_contigs_filtered.vcf"
@@ -50,7 +50,7 @@ vcf_out_name="all_individuals_all_contigs_filtered.vcf"
 # Copy input files to temp node local directory
 # This makes reads/writes faster during the job
 
-cp ${vcf_in_path}/${vcf_in_name} ${SLURM_TMPDIR}
+cp ${vcf_in_path}/${vcf_in_name}* ${SLURM_TMPDIR}
 
 printf "\nThe files in SLURM_TMPDIR are:\n"
 echo $(ls ${SLURM_TMPDIR})
@@ -61,6 +61,9 @@ echo $(ls ${SLURM_TMPDIR})
 
 printf "\nChanging working directory to SLURM_TMPDIR\n"
 cd ${SLURM_TMPDIR}
+
+# Unzip vcf
+gunzip ${vcf_in_name}.gz
 
 # Remove indels and SNPs with more than two alleles
 
