@@ -9,20 +9,8 @@
 #SBATCH --output=job_%j.out
 #SBATCH --mail-user=cwc@zoology.ubc.ca
 #SBATCH --mail-type=ALL
-#SBATCH --array=1-9
-
-# NOTE: The array parameter must be manually set above to the correct
-# number matching the number of interval lists for the dataset!
-# Above is one of 3 spots you need to add variables if you are running
-# the script. ADD VARIABLES (1/3)
 
 # Setting initial variables
-# Below is the second spot you need to ADD VARIABLES (2/3)
-# Scratchpath is just any directory on the shared filesystem where it's okay for
-# the script to create a small temporary file that sets the same jobtime
-# across the different jobs created by the array. The scratch directory
-# on the cluster is fine. This file can be deleted safely after all
-# members of the array are done running.
 
 scratchpath="/home/cwcharle/scratch"
 
@@ -31,7 +19,6 @@ this_filename="08_filter_sites.sub.sh"
 prologue_filename="tools/single_job_prologue.sh"
 
 # Run prologue script to take care of some logging and synchronize jobtimes
-# between members of the array
 source ${prologue_filename}
 
 # Load modules
