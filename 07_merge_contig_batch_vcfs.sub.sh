@@ -48,8 +48,8 @@ module list
 # Create variables with paths and names of input and output files
 
 in_vcf_path='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/combined_vcfs/'
-in_vcf_dir='2025-Oct-07_19-09-41'
-in_vcf_prefix='comb_vcf_'
+in_vcf_dir='2025-Oct-24_12-31-07'
+in_vcf_prefix='all_individuals_section_'
 
 dict_path='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/extras/'
 dict_name='GW2022ref.dict'
