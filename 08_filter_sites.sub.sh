@@ -136,7 +136,6 @@ printf "\n These are the files in the output directory\n"
 ls ${out_dir_path}
 
 printf "\n Moving logfile to the output folder \n"
-${init_wd}
-mv ${init_wd}/${logfilename} ${out_dir_path}
+mv ${init_wd}/${log_filename} ${out_dir_path}
 
 printf "\nScript complete\n"
