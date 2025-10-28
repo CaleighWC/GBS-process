@@ -11,10 +11,17 @@ printf "\nJobtime set as ${jobtime}.\n"
 # Move log file to contain jobtime
 printf "\nMoving log file to contain jobtime\n"
 
-mv job_${SLURM_JOB_ID}.out job_${SLURM_JOB_ID}_${jobtime}.out
+log_filename="job_${SLURM_JOB_ID}_${jobtime}.out"
+
+mv job_${SLURM_JOB_ID}.out ${log_filename}
 
 printf "\nLog file moved from job_${SLURM_JOB_ID}.out"
 printf "\nto job_${SLURM_JOB_ID}_${jobtime}.out\n"
+
+# Get initial working directory
+
+init_wd=$(pwd)
+printf "\nThe initial working directory is ${initwd}\n"
 
 # Print scripts submitted with job
 
