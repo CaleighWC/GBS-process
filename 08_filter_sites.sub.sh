@@ -28,7 +28,7 @@ scratchpath="/home/cwcharle/scratch"
 
 this_filename="08_filter_sites.sub.sh"
 
-prologue_filename="tools/array_job_prologue.sh"
+prologue_filename="tools/single_job_prologue.sh"
 
 # Run prologue script to take care of some logging and synchronize jobtimes
 # between members of the array
@@ -54,11 +54,11 @@ module list
 out_dir_path="/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/filtered_vcfs/${jobtime}"
 
 # The path and name of the genotyped vcf to use as input
-vcf_in_path="/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/combined_vcfs/2025-Oct-07_19-09-41"
-vcf_in_name="comb_vcf_${SLURM_ARRAY_TASK_ID}.vcf"
+vcf_in_path="/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/merged_vcf/2025-Oct-28_10-36-39"
+vcf_in_name="all_individuals_all_contigs.vcf.gz"
 
 # The name of the output filtered vcf
-vcf_out_name="comb_vcf_filtered_${SLURM_ARRAY_TASK_ID}.vcf"
+vcf_out_name="all_individuals_all_contigs_filtered.vcf"
 
 # Copy input files to temp node local directory
 # This makes reads/writes faster during the job
