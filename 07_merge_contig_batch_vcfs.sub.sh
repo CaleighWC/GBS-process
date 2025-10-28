@@ -20,7 +20,11 @@ this_filename='07_merge_contig_batch_vcfs.sub.sh'
 
 # Set filename of prologue script
 
-prologue_filename='/tools/single_job_prologue.sh'
+prologue_filename='./tools/single_job_prologue.sh'
+
+# Run prologue script for logging and creating useful variables
+
+source ${prologue_filename}
 
 # Load modules for job
 
@@ -80,7 +84,8 @@ mkdir ${out_dir_path}
 cp -r ${SLURM_TMPDIR}/${jobtime} ${out_dir_path}
 
 # Move log file to output directory once job is complete
-mv ${initwd}/${log_filename} ${out_dir_path}
+
+mv ${init_wd}/${log_filename} ${out_dir_path}/${jobtime}
 
 printf "\nScript complete\n"
 
