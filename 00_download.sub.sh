@@ -55,8 +55,7 @@ accession=$(sed -n ${SLURM_ARRAY_TASK_ID}p 'tmpaccessionlist.txt')
 
 out_dir_path='/home/cwcharle/scratch/GBS_data/'
 
-# Download and split files at listed accessions, then delete
-# the archive download to make space for others
+# Download and split files at listed accessions
 
 prefetch ${accession} \
 	--max-size 100g \
@@ -67,8 +66,6 @@ fasterq-dump ${accession} \
 	--split-files \
 	--outdir ${jobtime} \
 	--threads 8
-
-rm -r ${accession}
 
 # Move output back to new output directory in projects directory
 
