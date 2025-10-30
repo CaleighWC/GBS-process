@@ -20,7 +20,7 @@ this_filename='00_download.sub.sh'
 
 # Set filename of prologue file and run it
 
-prologue_filename='/tools/single_job_prologue.sh'
+prologue_filename='./tools/single_job_prologue.sh'
 
 source ${prologue_filename}
 
@@ -48,8 +48,7 @@ cd ${SLURM_TMPDIR}
 echo 'SRR1176844
 SRR31958018
 SRR31958020
-SRR31958019
-' > tmpaccessionlist.txt
+SRR31958019' > tmpaccessionlist.txt
 
 accessionlist='tmpaccessionlist.txt'
 
@@ -60,10 +59,13 @@ out_dir_path='/home/cwcharle/scratch/GBS_data/'
 
 while read accession; do
 	prefetch "$accession" \
-		--max-size 100g
+		--max-size 100g \
+		--progress \
+		--heartbeat 2
 	fasterq-dump "$accession" \
 		--split-files \
-		--outdir ${jobtime}
+		--outdir ${jobtime} \
+		--threads 8
 	rm -r "$accession"
 done < ${accessionlist}
 
