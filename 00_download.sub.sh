@@ -9,10 +9,11 @@
 #SBATCH --output=job_%j.out
 #SBATCH --mail-user=cwc@zoology.ubc.ca
 #SBATCH --mail-type=ALL 
+#SBATCH --array=1-4
 
-# Set jobtime so dates on different outputs from the job will match
+# Set scratch path for prologue script to use
 
-jobtime=$(date "+%Y-%b-%d_%H-%M-%S")
+scratchpath="/home/cwcharle/scratch"
 
 # Set filename of this file so contents can be printed in job output
 
@@ -20,7 +21,7 @@ this_filename='00_download.sub.sh'
 
 # Set filename of prologue file and run it
 
-prologue_filename='./tools/single_job_prologue.sh'
+prologue_filename='./tools/array_job_prologue.sh'
 
 source ${prologue_filename}
 
@@ -50,30 +51,32 @@ SRR31958018
 SRR31958020
 SRR31958019' > tmpaccessionlist.txt
 
-accessionlist='tmpaccessionlist.txt'
+accession=$(sed -n ${SLURM_ARRAY_TASK_ID}p 'tmpaccessionlist.txt')
 
 out_dir_path='/home/cwcharle/scratch/GBS_data/'
 
 # Download and split files at listed accessions, then delete
 # the archive download to make space for others
 
-while read accession; do
-	prefetch "$accession" \
-		--max-size 100g \
-		--progress \
-		--heartbeat 2
-	fasterq-dump "$accession" \
-		--split-files \
-		--outdir ${jobtime} \
-		--threads 8
-	rm -r "$accession"
-done < ${accessionlist}
+prefetch ${accession} \
+	--max-size 100g \
+	--progress \
+	--heartbeat 2
+
+fasterq-dump ${accession} \
+	--split-files \
+	--outdir ${jobtime} \
+	--threads 8
+
+rm -r ${accession}
 
 # Move output back to new output directory in projects directory
 
 printf "\nCopying output files back to projects directory\n"
 
-cp -r ${SLURM_TMPDIR}/${jobtime} ${out_dir_path}
+mkdir ${out_dir_path}/${jobtime}
+
+cp -r ${SLURM_TMPDIR}/${jobtime}/* ${out_dir_path}/${jobtime}
 
 printf "\nScript complete\n"
 
