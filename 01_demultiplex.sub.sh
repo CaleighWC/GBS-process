@@ -9,14 +9,19 @@
 #SBATCH --output=job_%j.out
 #SBATCH --mail-user=cwc@zoology.ubc.ca
 #SBATCH --mail-type=ALL 
+#SBATCH --array=1-4
 
 # Set filename of this file so contents can be printed in job output
 
 this_filename='01_demultiplex.sub.sh'
 
-# Set filename of prologue file
+# Set filename of prologue script
 
-prologue_filename='tools/single_job_prologue.sh'
+prologue_filename='tools/array_job_prologue.sh'
+
+# Scratch path for prologue script
+
+scratchpath='/home/cwcharle/scratch/'
 
 # Source prologue script (creates jobtime and prints scripts to log)
 
@@ -37,18 +42,25 @@ module list
 
 # Create variables with paths and names of input files
 
+accessionlistpath='/home/cwcharle/scratch/GBS_data/2025-Oct-30_23-24-58/'
+accessionlistname='accessionlist.txt'
+
+accession=$(sed -n ${SLURM_ARRAY_TASK_ID}p ${accessionlistpath}/${accessionlistname})
+
 barcodespath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/extras'
-barcodesname='barcodes_CaleighWC_Jun_9_2025_data.txt'
+barcodesname="${accession}_barcodes.txt"
 
-fq1path='/home/cwcharle/projects/def-dirwin/cwcharle/GBS_pool_Jun_9_2025_data/'
-fq1name='GBS_Pool_Jun_9_2025_S7_L002_R1_001.fastq'
+fq1path='/home/cwcharle/scratch/GBS_data/2025-Oct-30_23-24-58/'
+fq1name="${accession}_1.fastq"
 
-fq2path='/home/cwcharle/projects/def-dirwin/cwcharle/GBS_pool_Jun_9_2025_data/'
-fq2name='GBS_Pool_Jun_9_2025_S7_L002_R2_001.fastq'
+fq2path="${fq1path}"
+fq2name="${accession}_2.fastq"
 
-outputname='/GBS_Jun_9_2025_clean'
+outputname="${accession}"
 
 demultiplexerpath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/tools/GBS_demultiplexer_30base.pl'
+
+out_dir_path='/home/cwcharle/scratch/GBS-process/01_demultiplexed_fastqs/'
 
 # Copy input files to temp node local directory as input and make working directory
 
@@ -88,8 +100,14 @@ echo $(ls ${SLURM_TMPDIR})
 # Move output back to new output directory in projects directory
 
 printf "\nCopying output files back to projects directory\n"
-out_dir_path='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/clean_data/'
-cp -r ${SLURM_TMPDIR}/${jobtime} ${out_dir_path}
+
+mkdir -p ${out_dir_path}/${jobtime}/${accession}
+
+cp -r ${SLURM_TMPDIR}/${jobtime}/* ${out_dir_path}/${jobtime}/${accession}
+
+# Move and copy log file to final locations
+cp ${init_wd}/${logfilename} ${init_wd}/saved_logs
+mv ${init_wd}/${logfilename} ${out_dir_path}/${jobtime}
 
 printf "\nScript complete\n"
 
