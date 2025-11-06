@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --time=1-00:00:00
+#SBATCH --time=0-10:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=64G
@@ -9,6 +9,7 @@
 #SBATCH --output=job_%j.out
 #SBATCH --mail-user=cwc@zoology.ubc.ca
 #SBATCH --mail-type=ALL 
+#SBATCH --array=1-4
 
 # Set jobtime so dates on different outputs from the job will match
 
@@ -18,21 +19,19 @@ jobtime=$(date "+%Y-%b-%d_%H-%M-%S")
 
 this_filename='02_trim.sub.sh'
 
-# Move output file to have jobtime in it
+# Set filename of prologue script
 
-mv job_${SLURM_JOB_ID}.out job_${SLURM_JOB_ID}_${jobtime}.out
+prologue_filename='tools/array_job_prologue.sh'
 
-printf "The jobtime is ${jobtime}.\n"
+# Scratch path for prologue script
 
-printf "\nThe SLURM Job ID is ${SLURM_JOB_ID}\n"
+scratchpath='/home/cwcharle/scratch/'
 
-printf "\nThe submit script for the job is printed below:\n"
-printf "_______________________________________________\n"
+# Source prologue script (creates jobtime and prints scripts to log)
 
-cat ${this_filename}
+source ${prologue_filename}
 
-printf "\n_____________________________________________"
-printf "\nThat concludes the submit script for the job.\n"
+# Load modules for analysis
 
 printf "\nCurrently loaded modules\n"
 module list
@@ -46,39 +45,55 @@ printf "\nCurrently loaded modules\n"
 module list
 
 # Create variables with paths and names of input and output files
+# This is the only spot you should have to change any paths on runs
+# Except for the "scratchpath" above
+
+main_in_out_dir='/home/cwcharle/scratch/GBS-process/'
+
+accessionlistpath="${main_in_out_dir}/00_downloads/2025-Oct-30_23-24-58/"
+accessionlistname='accessionlist.txt' # Path to list of names / accessions for array to use
+
+accession=$(sed -n ${SLURM_ARRAY_TASK_ID}p ${accessionlistpath}/${accessionlistname})
 
 barcodespath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/extras/'
-barcodesname='barcodes_CaleighWC_Jun_9_2025_data.txt'
+barcodesname="${accession}_barcodes.txt"
 
-cleandatapath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/clean_data/'
-cleandataname='2025-Aug-14_12-46-15'
+infastqpath="${main_in_out_dir}/01_demultiplexed_fastqs/2025-Oct-31_11-55-01"
+infastqdir="${accession}" # Path to input fastqs
 
-dataname='GBS_Jun_9_2025_clean_'
+indatanamestart="${accession}_"
 
-outlistpath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/extras/'
-outlistname="prefix.list.${dataname}.bwa"
+out_dir_stem="${main_in_out_dir}/02_trimmed_fastqs/${jobtime}"
+out_dir_leaf="/${accession}"
 
-out_dir_path='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/clean_data_trim/'
+out_prefix_list_name="prefix.list.${indatanamestart}.bwa"
 
-# Make list of individuals from the barcode file
+# Print accession to log
+
+printf "\n The accession is ${accession}\n"
+
+# Make list of individuals from the indatanamestart variable and barcode file
+
 printf "\nMaking list of individuals from the barcode file\n"
 
-awk -v dataname="${dataname}" '{print dataname $1}' ${barcodespath}/${barcodesname} > ${outlistpath}/${outlistname}
+mkdir -p ${out_dir_stem}/${out_dir_leaf}
+
+awk -v dataname="${dataname}" '{print dataname $1}' ${barcodespath}/${barcodesname} > ${out_dir_stem}/${out_dir_leaf}/${out_prefix_list_name}
 
 # Copy input files to temp node local directory as input and make working directory
 
 printf "\nCopying prefix list file to node local storage\n"
-cp ${outlistpath}/${outlistname} ${SLURM_TMPDIR} 
+cp ${out_dir_stem}/${out_dir_leaf}/${out_prefix_list_name} ${SLURM_TMPDIR} 
 
-printf "\nCopying cleaned data to node local storage\n"
-cp -r ${cleandatapath}/${cleandataname} ${SLURM_TMPDIR}
+printf "\nCopying input fastqs to node local storage\n"
+cp -r ${infastqpath}/${infastqdir} ${SLURM_TMPDIR}
 
 printf "\nThe files in SLURM_TMPDIR are:\n"
 echo $(ls ${SLURM_TMPDIR})
 
 # Make node local output directory to copy back later
 
-mkdir ${SLURM_TMPDIR}/${jobtime}
+mkdir ${SLURM_TMPDIR}/outfastq
 
 # Run the trimmomatic tool and write its output to the node local output file
 
@@ -93,18 +108,18 @@ do
 java -jar $EBROOTTRIMMOMATIC/trimmomatic-0.39.jar \
 PE \
 -phred33 \
--threads 1 \
-${cleandataname}/"$prefix"_R1.fastq \
-${cleandataname}/"$prefix"_R2.fastq \
-${jobtime}/"$prefix"_R1.fastq \
-${jobtime}/"$prefix"_R1_unpaired.fastq \
-${jobtime}/"$prefix"_R2.fastq \
-${jobtime}/"$prefix"_R2_unpaired.fastq \
+-threads 8 \
+${infastqdir}/${indatanamestart}${prefix}_R1.fastq \
+${infastqdir}/${indatanamestart}${prefix}_R2.fastq \
+outfastq/"$prefix"_R1.fastq \
+outfastq/"$prefix"_R1_unpaired.fastq \
+outfastq/"$prefix"_R2.fastq \
+outfastq/"$prefix"_R2_unpaired.fastq \
 TRAILING:3 \
 SLIDINGWINDOW:4:10 \
 MINLEN:30
 
-done < ${SLURM_TMPDIR}/${outlistname}
+done < ${SLURM_TMPDIR}/${out_prefix_list_name}
 
 printf "\nfinished running trimmomatic\n"
 
@@ -115,7 +130,12 @@ echo $(ls ${SLURM_TMPDIR})
 
 printf "\nCopying output files back to projects directory\n"
 
-cp -r ${SLURM_TMPDIR}/${jobtime} ${out_dir_path}
+cp -r ${SLURM_TMPDIR}/outfastq/* ${out_dir_stem}/${out_dir_leaf}
 
 printf "\nScript complete\n"
+
+# Move and copy log file to output directory and log archive
+
+cp ${init_wd}/${logfilename} ${init_wd}/saved_logs
+mv ${init_wd}/${logfilename} ${out_dir_stem}/${logfilename}
 
