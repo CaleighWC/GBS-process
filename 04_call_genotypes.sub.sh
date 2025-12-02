@@ -9,6 +9,7 @@
 #SBATCH --output=job_%j.out
 #SBATCH --mail-user=cwc@zoology.ubc.ca
 #SBATCH --mail-type=ALL 
+#SBATCH --array=1-4
 
 # Set jobtime so dates on different outputs from the job will match
 
@@ -18,21 +19,19 @@ jobtime=$(date "+%Y-%b-%d_%H-%M-%S")
 
 this_filename='04_call_genotypes.sub.sh'
 
-# Move output file to have jobtime in it
+# Set filename of prologue script
 
-mv job_${SLURM_JOB_ID}.out job_${SLURM_JOB_ID}_${jobtime}.out
+prologue_filename='tools/array_job_prologue.sh'
 
-printf "The jobtime is ${jobtime}.\n"
+# Scratch path for prologue script
 
-printf "\nThe SLURM Job ID is ${SLURM_JOB_ID}\n"
+scratchpath='/home/cwcharle/scratch/'
 
-printf "\nThe submit script for the job is printed below:\n"
-printf "_______________________________________________\n"
+# Source prologue script (creates jobtime and prints scripts to log)
 
-cat ${this_filename}
+source ${prologue_filename}
 
-printf "\n_____________________________________________"
-printf "\nThat concludes the submit script for the job.\n"
+# Load modules for job
 
 printf "\nCurrently loaded modules\n"
 module list
@@ -53,10 +52,17 @@ proc_count=0
 
 # Create variables with paths and names of input and output files
 
-barcodespath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/extras'
-barcodesname='barcodes_CaleighWC_Jun_9_2025_data.txt'
+main_in_out_dir="/home/cwcharle/scratch/GBS-process"
 
-bampath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/sam_bam/2025-Aug-20_07-59-56'
+accessionlistpath="${main_in_out_dir}/00_downloads/2025-Oct-30_23-24-58/"
+accessionlistname='accessionlist.txt' # Path to list of names / accessions for array to use
+
+accession=$(sed -n ${SLURM_ARRAY_TASK_ID}p ${accessionlistpath}/${accessionlistname})
+
+barcodespath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/extras/'
+barcodesname="${accession}_barcodes.txt"
+
+bampath="${main_in_out_dir}/03_align_combine/2025-Nov-13_10-21-30/${accession}/"
 bamname='bam'
 
 genomepath='/home/cwcharle/projects/def-dirwin/cwcharle/gw2022_data/'
@@ -65,15 +71,16 @@ genomename='GW2022ref.fa'
 genomeindexpath="${genomepath}"
 genomeindexname='GW2022ref.fa.fai'
 
-dataname='GBS_Jun_9_2025_clean_'
-
-outlistpath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/extras/'
-outlistname="prefix.list.${dataname}.bwa"
+outlistpath="/home/cwcharle/scratch/GBS-process/02_trimmed_fastqs/2025-Nov-06_11-36-22/${accession}"
+outlistname="prefix.list.${accession}_.bwa"
 
 outdictpath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/extras/'
 outdictname='GW2022ref.dict'
 
-out_dir_path='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/gvcf/'
+out_dir_path="${main_in_out_dir}/04_call_genotypes/${jobtime}/${accession}"
+
+# Print accession to log
+printf "\n The accession for this run is ${accession}\n"
 
 # Make dict of reference
 
@@ -151,7 +158,14 @@ echo $(ls ${SLURM_TMPDIR})
 
 printf "\nCopying output files back to projects directory\n"
 
-cp -r ${SLURM_TMPDIR}/${jobtime} ${out_dir_path}
+mkdir -p ${out_dir_path}
+
+cp -r ${SLURM_TMPDIR}/${jobtime}/* ${out_dir_path}
+
+# Move and copy log file to output directory and log archive
+
+cp ${init_wd}/${logfilename} ${init_wd}/saved_logs
+mv ${init_wd}/${logfilename} ${out_dir_path}/${logfilename}
 
 printf "\nScript complete\n"
 
