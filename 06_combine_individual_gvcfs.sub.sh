@@ -51,8 +51,11 @@ module list
 # This is the last spot where you need to ADD VARIABLES (3/3)
 
 # The path to directory and then the name of directory containing your individual gvcf files
-gvcfspath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/gvcf'
-gvcfsname='2025-Aug-21_11-57-57'
+gvcfspath=$'/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/gvcf/2025-Aug-21_11-57-57
+/home/cwcharle/scratch/GBS-process/04_call_genotypes/2025-Dec-01_13-47-35/SRR1176844
+/home/cwcharle/scratch/GBS-process/04_call_genotypes/2025-Dec-01_13-47-35/SRR31958018
+/home/cwcharle/scratch/GBS-process/04_call_genotypes/2025-Dec-01_13-47-35/SRR31958019
+/home/cwcharle/scratch/GBS-process/04_call_genotypes/2025-Dec-01_13-47-35/SRR31958020'
 
 genomepath='/home/cwcharle/projects/def-dirwin/cwcharle/gw2022_data/'
 genomename='GW2022ref.fa'
@@ -69,7 +72,7 @@ intervallistspath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/inter
 intervallistsmanifest='lists_manifest.txt'
 
 # The path where you would like the job output to be placed (ideally something generated unique to this run)
-out_dir_path="/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/combined_vcfs/${jobtime}"
+out_dir_path="/home/cwcharle/scratch/GBS-process/06_combine_individual_gvcfs/${jobtime}"
 
 # The name of the genomicsdb workspace
 genomicsdb_out_name="genomicsdb_${SLURM_ARRAY_TASK_ID}"
@@ -81,7 +84,10 @@ vcf_out_name="all_individuals_section_${SLURM_ARRAY_TASK_ID}.vcf.gz"
 # This makes reads/writes faster during the job
 
 printf "\nCopying gvcfs to node local storage\n"
-cp -r ${gvcfspath}/${gvcfsname} ${SLURM_TMPDIR}
+mkdir ${SLURM_TMPDIR}/input_gvcfs
+while read path; do
+cp $path/* ${SLURM_TMPDIR}/input_gvcfs
+done < ${gvcfspath}
 
 printf "\nCopying reference genome to node local storage\n"
 cp ${genomepath}/${genomename} ${SLURM_TMPDIR}
@@ -111,7 +117,7 @@ cd ${SLURM_TMPDIR}
 
 printf "\nCreating a variable with the list of all individuals for which gvcf files exist"
 
-gvcflist=$(printf -- " -V %s" "${gvcfsname}"/*vcf)
+gvcflist=$(printf -- " -V %s" "input_gvcfs"/*vcf)
 
 printf "\nBelow is the list of all individuals for which gvcf files exist\n"
 printf "\n----------------------------\n"
@@ -166,7 +172,7 @@ SortVcf \
 
 printf "\nCopying final output file back to projects directory in ${out_dir_path}\n"
 
-mkdir ${out_dir_path}
+mkdir -p ${out_dir_path}
 
 cp -r ${SLURM_TMPDIR}/${vcf_out_name} ${out_dir_path}/
 
