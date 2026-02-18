@@ -1,8 +1,9 @@
 # GBS-process
 
-This is a set of submit scripts created to modernize the Irwin lab GBS 
-processing protocol to use GATK version on the Fir cluster from Digital 
-Research Alliance of Canada. This cluster uses SLURM for job scheduling. 
+This is a set of submit scripts created by Caleigh Charlebois to streamline
+Darren Irwin's GBS processing protocol to use GATK version on the Fir cluster
+from Digital Research Alliance of Canada. This cluster uses SLURM for job
+scheduling. 
 
 # How to Use
 
@@ -23,5 +24,9 @@ directory (where the job was submitted from) until the script is completed, at
 which point the log files are moved to the output directory.
 - Output folders are named with timestamps describing when the job was
 submitted, to avoid the output from one run overwriting another
+- The scripts work by copying input files to temporary storage on the compute
+nodes, which has some advantages and is recommended by the Digital Research
+Alliance of Canada. However, this does mean that incomplete jobs sometimes
+don't copy any results back, and it can make troubleshooting more challenging.
 
 -------------------------------------------------------------------------------
