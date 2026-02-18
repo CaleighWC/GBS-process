@@ -156,11 +156,11 @@ function intervals_batched_from_dict(dict_file, outdir)
     	# Make sure files are empty and write to manifest of interval lists
 	
 	manifestpath = joinpath(outdir, "lists_manifest.txt")
-	manifestfile = open(manifestpath, "a")
+	manifestfile = open(manifestpath, "w")
 
         for i in 1:maximum(bin_addresses)
             
-	    txtfilename = "intervals_$(bin_addresses[i]).list"
+	    txtfilename = "intervals_$(i).list"
             txtfilepath = joinpath(outdir, txtfilename)
             txtfile = open(txtfilepath, "w")
             close(txtfile) # Just opening in write mode and immediately closing to clear
