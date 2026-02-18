@@ -42,7 +42,9 @@ module list
 
 # Create variables with paths and names of input files
 
-accessionlistpath='/home/cwcharle/scratch/GBS_data/2025-Oct-30_23-24-58/'
+main_in_out_dir="/home/cwcharle/scratch/GBS-process/"
+
+accessionlistpath="${main_in_out_dir}/00_downloads/2025-Oct-30_23-24-58/"
 accessionlistname='accessionlist.txt'
 
 accession=$(sed -n ${SLURM_ARRAY_TASK_ID}p ${accessionlistpath}/${accessionlistname})
@@ -50,7 +52,7 @@ accession=$(sed -n ${SLURM_ARRAY_TASK_ID}p ${accessionlistpath}/${accessionlistn
 barcodespath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/extras'
 barcodesname="${accession}_barcodes.txt"
 
-fq1path='/home/cwcharle/scratch/GBS_data/2025-Oct-30_23-24-58/'
+fq1path="${main_in_out_dir}/00_downloads/2025-Oct-30_23-24-58/"
 fq1name="${accession}_1.fastq"
 
 fq2path="${fq1path}"
@@ -60,7 +62,8 @@ outputname="${accession}"
 
 demultiplexerpath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/tools/GBS_demultiplexer_30base.pl'
 
-out_dir_path='/home/cwcharle/scratch/GBS-process/01_demultiplexed_fastqs/'
+out_dir_stem="${main_in_out_dir}/01_demultiplexed_fastqs/"
+out_dir_leaf="${jobtime}/${accession}"
 
 # Copy input files to temp node local directory as input and make working directory
 
@@ -101,13 +104,13 @@ echo $(ls ${SLURM_TMPDIR})
 
 printf "\nCopying output files back to projects directory\n"
 
-mkdir -p ${out_dir_path}/${jobtime}/${accession}
+mkdir -p ${out_dir_stem}/${out_dir_leaf}
 
-cp -r ${SLURM_TMPDIR}/${jobtime}/* ${out_dir_path}/${jobtime}/${accession}
+cp -r ${SLURM_TMPDIR}/${jobtime}/* ${out_dir_stem}/${out_dir_leaf}
 
 # Move and copy log file to final locations
 cp ${init_wd}/${logfilename} ${init_wd}/saved_logs
-mv ${init_wd}/${logfilename} ${out_dir_path}/${jobtime}
+mv ${init_wd}/${logfilename} ${out_dir_stem}/${out_dir_leaf}
 
 printf "\nScript complete\n"
 

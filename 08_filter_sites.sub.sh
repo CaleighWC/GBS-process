@@ -38,10 +38,10 @@ module list
 # This is the last spot where you need to ADD VARIABLES (3/3)
 
 # The path where you would like the job output to be placed (ideally something generated unique to this run)
-out_dir_path="/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/filtered_vcfs/${jobtime}"
+out_dir_path="/home/cwcharle/scratch/GBS-process/08_filter_sites/${SLURM_JOB_ID}_${jobtime}"
 
 # The path and name of the genotyped vcf to use as input
-vcf_in_path="/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/merged_vcf/2025-Oct-28_10-36-39"
+vcf_in_path="/home/cwcharle/scratch/GBS-process/07_merge_contig_batch_vcfs/23228275_2026-Feb-17_15-26-10"
 vcf_in_name="all_individuals_all_contigs.vcf"
 
 # The name of the output filtered vcf
@@ -123,7 +123,7 @@ gzip ${vcf_out_name}
 
 printf "\nCopying final output file back to projects directory in ${out_dir_path}\n"
 
-mkdir ${out_dir_path}
+mkdir -p ${out_dir_path}
 
 cp ${SLURM_TMPDIR}/${vcf_out_name}.gz ${out_dir_path}/
 

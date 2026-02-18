@@ -53,25 +53,32 @@ SRR31958019' > tmpaccessionlist.txt
 
 accession=$(sed -n ${SLURM_ARRAY_TASK_ID}p 'tmpaccessionlist.txt')
 
-out_dir_path='/home/cwcharle/scratch/GBS_data/'
+out_dir_path='/home/cwcharle/scratch/GBS-process/downloads/'
+
+download_path='/home/cwcharle/scratch/GBS-process/'
+
+# Move files to node local storage to work with them (hacky temp solution for now)
+
+cp -r ${download_path}/${accession} ${SLURM_TMPDIR}
 
 # Download and split files at listed accessions
 
-prefetch ${accession} \
-	--max-size 100g \
-	--progress \
-	--heartbeat 2
+#prefetch ${accession} \
+#	--max-size 100g \
+#	--progress \
+#	--heartbeat 2
 
 fasterq-dump ${accession} \
 	--split-files \
 	--outdir ${jobtime} \
-	--threads 8
+	--threads 8 \
+	--progress
 
 # Move output back to new output directory in projects directory
 
 printf "\nCopying output files back to projects directory\n"
 
-mkdir ${out_dir_path}/${jobtime}
+mkdir -p ${out_dir_path}/${jobtime}
 
 cp -r ${SLURM_TMPDIR}/${jobtime}/* ${out_dir_path}/${jobtime}
 

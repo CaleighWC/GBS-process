@@ -1,15 +1,16 @@
 #!/bin/bash
 
-#SBATCH --time=0-05:00:00
+#SBATCH --time=1-00:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=64G
+#SBATCH --tmp=50G
 #SBATCH --job-name="06_combine_individual_gvcfs.sub.sh"
 #SBATCH --account=def-dirwin
 #SBATCH --output=job_%j.out
 #SBATCH --mail-user=cwc@zoology.ubc.ca
 #SBATCH --mail-type=ALL
-#SBATCH --array=1-9
+#SBATCH --array=6-9
 
 # NOTE: The array parameter must be manually set above to the correct
 # number matching the number of interval lists for the dataset!
@@ -87,7 +88,7 @@ printf "\nCopying gvcfs to node local storage\n"
 mkdir ${SLURM_TMPDIR}/input_gvcfs
 while read path; do
 cp $path/* ${SLURM_TMPDIR}/input_gvcfs
-done < ${gvcfspath}
+done <<< ${gvcfspath}
 
 printf "\nCopying reference genome to node local storage\n"
 cp ${genomepath}/${genomename} ${SLURM_TMPDIR}
@@ -162,11 +163,17 @@ echo $(ls ${SLURM_TMPDIR})
 # Sort output file to prevent downstream problems
 printf "\nRunning picard to sort output vcf\n"
 
-java -jar $EBROOTPICARD/picard.jar \
+mkdir ${SLURM_TMPDIR}/javatmp
+
+java -Xmx60g -jar $EBROOTPICARD/picard.jar \
 SortVcf \
+	TMP_DIR=${SLURM_TMPDIR}/javatmp \
 	I=${vcf_out_name}.unsorted \
 	O=${vcf_out_name} \
 	SD=${genomedictname}
+
+printf "\nThe files in SLURM_TMPDIR are now\n"
+echo $(ls ${SLURM_TMPDIR})
 
 # Move output back to output directory in projects directory
 
@@ -174,6 +181,7 @@ printf "\nCopying final output file back to projects directory in ${out_dir_path
 
 mkdir -p ${out_dir_path}
 
+cp -r ${SLURM_TMPDIR}/${vcf_out_name}.unsorted ${out_dir_path}/
 cp -r ${SLURM_TMPDIR}/${vcf_out_name} ${out_dir_path}/
 
 printf "\n These are the files in the output directory\n"
