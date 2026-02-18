@@ -71,13 +71,13 @@ genomename='GW2022ref.fa'
 genomeindexpath="${genomepath}"
 genomeindexname='GW2022ref.fa.fai'
 
-outlistpath="/home/cwcharle/scratch/GBS-process/02_trimmed_fastqs/2025-Nov-06_11-36-22/${accession}"
+outlistpath="${main_in_out_dir}/02_trimmed_fastqs/2025-Nov-06_11-36-22/${accession}"
 outlistname="prefix.list.${accession}_.bwa"
 
 outdictpath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/extras/'
 outdictname='GW2022ref.dict'
 
-out_dir_path="${main_in_out_dir}/04_call_genotypes/${jobtime}/${accession}"
+out_dir_path="${main_in_out_dir}/04_call_genotypes/${SLURM_JOB_ID}_${jobtime}/${accession}"
 
 # Print accession to log
 printf "\n The accession for this run is ${accession}\n"
