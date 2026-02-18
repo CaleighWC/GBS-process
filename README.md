@@ -53,15 +53,15 @@ replaced with the ones you want to download.
 
 ## 01_demultiplex.sub.sh
 This script demultiplexes raw read data using the script located at 
-tools/GBS_demultiplexer_30base.pl. This script was originally designed by Greg
-Baute. Inputs are the barcodes, a list of accession directories to run the 
-array members on, a forward read fastq file, and a reverse read fastq file.
-Like in the prior step, "#SBATCH --array=" should be equal to 1-N, with N being
-the number of accessions you want to demultiplex data from. This is so that
-you can run a single submit script to simultaneously demultiplex multiple
-plates downloaded with "00_download.sub.sh". If you only need to run it on a
-single plate, you can just make that list of accessions have a single member
-and include "#SBATCH --array=1". 
+tools/GBS_demultiplexer_30base.pl, which is a demultiplexer script originally 
+designed by Greg Baute. Inputs are the barcodes, a list of accession 
+directories to run the array members on, a forward read fastq file, and a 
+reverse read fastq file. Like in the prior step, "#SBATCH --array=" should be
+equal to 1-N, with N being the number of accessions you want to demultiplex 
+data from. This is so that you can run a single submit script to simultaneously
+demultiplex multiple plates downloaded with "00_download.sub.sh". If you only 
+need to run it on a single plate, you can just make that list of accessions
+have a single member and include "#SBATCH --array=1". 
 
 ## 02_trim.sub.sh
 -------------------------------------------------------------------------------
