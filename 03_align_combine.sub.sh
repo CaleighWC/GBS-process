@@ -67,7 +67,7 @@ genomename='GW2022ref.fa'
 outlistpath="/home/cwcharle/scratch/GBS-process/02_trimmed_fastqs/2025-Nov-06_11-36-22/${accession}"
 outlistname="prefix.list.${accession}_.bwa"
 
-out_dir_path="/home/cwcharle/scratch/GBS-process/03_align_combine/${jobtime}/${accession}"
+out_dir_path="${main_in_out_dir}/03_align_combine/${SLURM_JOB_ID}_${jobtime}/${accession}"
 
 # Print accession to log
 printf "\n The accession for this run is ${accession}\n"
