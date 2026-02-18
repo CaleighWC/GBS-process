@@ -40,7 +40,7 @@ module list
 out_dir_path="/home/cwcharle/scratch/GBS-process/09_convert_to_012minus1.sub.sh/"
 
 # The path and name of the genotyped vcf to use as input
-vcf_in_path="/home/cwcharle/scratch/GBS-process/08_filter_sites/2025-Dec-11_10-42-50"
+vcf_in_path="/home/cwcharle/scratch/GBS-process/08_filter_sites/23230469_2026-Feb-17_15-43-11"
 vcf_in_name="all_individuals_all_contigs_filtered.vcf"
 
 # The name of the output file
@@ -61,7 +61,7 @@ echo $(ls ${SLURM_TMPDIR})
 printf "\nChanging working directory to SLURM_TMPDIR\n"
 cd ${SLURM_TMPDIR}
 
-mkdir ${jobtime}
+mkdir ${SLURM_JOB_ID}_${jobtime}
 
 # Unzip vcf
 gunzip ${vcf_in_name}.gz
@@ -70,7 +70,7 @@ gunzip ${vcf_in_name}.gz
 vcftools \
 	--vcf ${vcf_in_name} \
 	--012 \
-	--out ${jobtime}/${out_name}
+	--out ${SLURM_JOB_ID}_${jobtime}/${out_name}
 
 printf "\nThe files in SLURM_TMPDIR are now\n"
 echo $(ls ${SLURM_TMPDIR})
@@ -81,12 +81,12 @@ printf "\nCopying final output file back to projects directory in ${out_dir_path
 
 mkdir -p ${out_dir_path}
 
-cp -r ${SLURM_TMPDIR}/${jobtime} ${out_dir_path}/
+cp -r ${SLURM_TMPDIR}/${SLURM_JOB_ID}_${jobtime} ${out_dir_path}/
 
 printf "\n These are the files in the output directory\n"
 ls ${out_dir_path}
 
 printf "\n Moving logfile to the output folder \n"
-mv ${init_wd}/${log_filename} ${out_dir_path}/${jobtime}
+mv ${init_wd}/${log_filename} ${out_dir_path}/${SLURM_JOB_ID}_${jobtime}
 
 printf "\nScript complete\n"
