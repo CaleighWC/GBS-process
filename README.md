@@ -18,15 +18,32 @@ from Dryad at https://datadryad.org/dataset/doi:10.5061/dryad.8w9ghx3xr.
 
 # How to Use
 
-1. Modify the SLURM parameters at the beginning of the script as appropriate.
+1. Decide where to keep the large output files produced by the scripts. In
+this folder, each script will create a directory for its outputs and a
+subdirectory inside for the output of an individual run. You can specify where
+these directories will be created by setting the "main_in_out_dir" variable in
+the script. For example, if you set "main_in_out_dir" equal to
+"/home/user/scratch/GBS-process", running 02_trim.sub.sh will create a
+directory "/home/user/scratch/GBS-process/02_trimmed_fastqs/23228275_2026-Feb-17_15-26-10"
+Other runs of 02_trim.sub.sh will create new subdirectories with their results.
+This makes it impossible to accidentally overwrite the results of a run, even
+when multiple jobs are submitted at once. Putting the output directories in
+scratch, as in my example path, is a good idea because it avoids inadvertently
+using a lot of space in the project directory on Fir.
+Exceptions to this behavior are scripts 00_download.sub.sh and 
+05_create_interval_lists.sh, because the outputs are of a different nature, and
+I assume the user will want to specify another output directory for those 
+scripts as I have done for myself. 
+3. Modify the SLURM parameters at the beginning of the script as appropriate.
 You may need to change the walltime if your dataset is larger or smaller than
 mine and you will definitely need to change the number of array jobs in most
-steps to match the number of source files in your data.
-3. Put the correct paths to your data in the "# Create variables with paths and
+steps to match the number of source files in your data. 
+4. Put the correct paths to your data in the "# Create variables with paths and
 names of input files" section of the script. Often, the input path will be in
 the output directory of a prior step. Don't forget to also make sure your
-output directory is correct. Having the output directory in scratch is a good
-idea to avoid accidentally taking up a lot of space. 
+output directory is correct. 
+5. Run the script you are using with sbatch. For example,
+"sbatch 01_demultiplex.sub.sh".  
 
 # What You Should Know
 
