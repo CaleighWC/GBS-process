@@ -63,7 +63,7 @@ outputname="${accession}"
 demultiplexerpath='/home/cwcharle/projects/def-dirwin/cwcharle/GBS-process/tools/GBS_demultiplexer_30base.pl'
 
 out_dir_stem="${main_in_out_dir}/01_demultiplexed_fastqs/"
-out_dir_leaf="${jobtime}/${accession}"
+out_dir_leaf="${SLURM_JOB_ID}_${jobtime}/${accession}"
 
 # Copy input files to temp node local directory as input and make working directory
 
