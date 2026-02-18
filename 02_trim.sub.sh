@@ -63,7 +63,7 @@ infastqdir="${accession}" # Path to input fastqs
 
 indatanamestart="${accession}_"
 
-out_dir_stem="${main_in_out_dir}/02_trimmed_fastqs/${jobtime}"
+out_dir_stem="${main_in_out_dir}/02_trimmed_fastqs/${SLURM_JOB_ID}_${jobtime}"
 out_dir_leaf="/${accession}"
 
 out_prefix_list_name="prefix.list.${indatanamestart}.bwa"
