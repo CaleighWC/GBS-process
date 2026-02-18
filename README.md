@@ -39,6 +39,9 @@ submitted, to avoid the output from one run overwriting another.
 nodes, which has some advantages and is recommended by the Digital Research
 Alliance of Canada. However, this does mean that incomplete jobs sometimes
 don't copy any results back, and it can make troubleshooting more challenging.
+- In array jobs, all of the jobs will wait for the job with the lowest array
+ID to begin because tools/array_job_prologue.sh programs the lowest array
+to generate a shared jobtime variable that is constant across the outputs. 
 
 # Script Descriptions
 
