@@ -84,10 +84,19 @@ need to run it on a single plate, you can just make that list of accessions
 have a single member and include "#SBATCH --array=1". 
 
 ## 02_trim.sub.sh
--------------------------------------------------------------------------------
+This script is for trimming the fastqs demultiplexed in the prior step to
+remove barcodes and low-quality sequences. It uses the Trimmomatic tool
+available on Fir as a module. Inputs are a list of accessions (used in this
+step as part of the path to files from the previous step), list of barcodes,
+and demultiplexed fastqs. It first creates a list of all the individuals from
+the barcode list, then runs Trimmomatic on each fastq.
 
 ## 03_align_combine.sub.sh
+This script aligns the reads to a reference genome and combines the single and
+paired end bam files so that there is one file per individual. It also indexes
+the reference fasta file and the resulting 
 
+-------------------------------------------------------------------------------
 
 ## 04_call_genotypes.sub.sh
 
